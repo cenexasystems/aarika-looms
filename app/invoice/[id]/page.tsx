@@ -134,7 +134,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             </div>
             <div className="flex items-center gap-1.5 justify-center">
               <Phone className="w-3.5 h-3.5 text-[#8C1D2F] shrink-0" />
-              <span>+91 {process.env.NEXT_PUBLIC_STORE_PHONE || "99400 88786"}</span>
+              <span>+91 {process.env.NEXT_PUBLIC_STORE_PHONE}</span>
             </div>
           </div>
         </div>

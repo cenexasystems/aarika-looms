@@ -27,6 +27,8 @@ import {
   Calendar,
   Download,
   LogOut,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { verifyPasscode } from "@/app/pos/actions";
@@ -270,6 +272,7 @@ export default function POSBilling() {
   const [isAuthorized, setIsAuthorized] = useState<boolean>(false);
   const [passcode, setPasscode] = useState<string>("");
   const [passcodeError, setPasscodeError] = useState<string>("");
+  const [showPasscode, setShowPasscode] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
   const [activeTab, setActiveTab] = useState<
@@ -1007,7 +1010,7 @@ export default function POSBilling() {
     return (
       <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CC0000]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8C1D2F]"></div>
           <span className="text-xs text-[#000000] font-bold uppercase tracking-wider">
             Verifying Session...
           </span>
@@ -1020,7 +1023,7 @@ export default function POSBilling() {
     return (
       <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center p-4 font-sans">
         <div className="w-full max-w-md bg-white border border-black/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] overflow-hidden relative">
-          <div className="h-2 bg-[#CC0000] w-full" />
+          <div className="h-2 bg-[#8C1D2F] w-full" />
           <div className="p-8 flex flex-col items-center">
             <div className="w-24 h-24 mb-6 overflow-hidden flex items-center justify-center">
               <img src="/logo.png" alt="UPDATE MENS WEAR Logo" className="w-full h-full object-contain" />
@@ -1036,19 +1039,28 @@ export default function POSBilling() {
                 <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                   Enter Passcode
                 </label>
-                <input
-                  type="password"
-                  name="update-pos-passcode"
-                  autoComplete="new-password"
-                  placeholder="••••• •••••"
-                  className="w-full bg-[#FFFFFF]/40 border border-black/10 hover:border-black/10 focus:border-[#CC0000] focus:bg-white rounded-lg px-4 py-3 text-center text-lg font-bold text-[#000000] focus:outline-none transition-colors placeholder:text-[#000000]/40 tracking-[0.25em]"
-                  value={passcode}
-                  onChange={(e) => {
-                    setPasscode(e.target.value);
-                    if (passcodeError) setPasscodeError("");
-                  }}
-                  autoFocus
-                />
+                <div className="relative">
+                  <input
+                    type={showPasscode ? "text" : "password"}
+                    name="update-pos-passcode"
+                    autoComplete="new-password"
+                    placeholder="Enter Passcode..."
+                    className="w-full bg-[#FFFFFF]/40 border border-black/10 hover:border-black/10 focus:border-[#8C1D2F] focus:bg-white rounded-lg px-4 py-3 text-center text-lg font-bold text-[#000000] focus:outline-none transition-colors placeholder:text-[#000000]/40"
+                    value={passcode}
+                    onChange={(e) => {
+                      setPasscode(e.target.value);
+                      if (passcodeError) setPasscodeError("");
+                    }}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasscode(!showPasscode)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black/40 hover:text-[#8C1D2F] transition-colors cursor-pointer"
+                  >
+                    {showPasscode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
                 {passcodeError && (
                   <p className="text-xs text-[#E11D48] font-bold mt-2 text-center animate-pulse">
                     {passcodeError}
@@ -1057,7 +1069,7 @@ export default function POSBilling() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#CC0000] hover:bg-[#990000] active:scale-98 text-[#FFFFFF] rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all shadow-md cursor-pointer"
+                className="w-full py-3.5 bg-[#8C1D2F] hover:bg-[#6A1624] active:scale-98 text-[#FFFFFF] rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all shadow-md cursor-pointer"
               >
                 Access System
               </button>
@@ -3317,9 +3329,9 @@ export default function POSBilling() {
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 hover:bg-[#000000] rounded-full transition-colors"
+                  className="p-2 hover:bg-black/10 rounded-full transition-colors group cursor-pointer"
                 >
-                  <X className="w-5 h-5 text-[#000000]" />
+                  <X className="w-5 h-5 text-[#000000] group-hover:text-[#FF0000] transition-colors" />
                 </button>
               </div>
 

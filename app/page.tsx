@@ -30,7 +30,7 @@ export default function Home() {
           </span>
           
           <h1 className="text-3xl font-black text-[#192836] leading-tight tracking-tight mb-2">
-            NaNi Men's Clothing
+            Update Men's Wear
           </h1>
           <p className="text-xs text-[#8C1D2F] font-black tracking-widest uppercase mb-8">
             Tailoring & Custom Menswear
@@ -63,7 +63,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[#E8DEC8]/50 py-6 text-center bg-[#F8F5F0]">
         <p className="text-[10px] font-bold text-[#8C1D2F] tracking-widest uppercase">
-          NaNi Men's Clothing • Chennai
+          Update Men's Wear • Chennai
         </p>
         <p className="text-[9px] font-semibold text-[#8A7B72]/85 uppercase tracking-wider mt-1">
           © {new Date().getFullYear()} All Rights Reserved • Powered by Cenexa Systems
