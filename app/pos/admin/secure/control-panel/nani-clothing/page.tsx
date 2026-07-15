@@ -689,22 +689,31 @@ export default function POSBilling() {
     const domain = window.location.origin;
     const invoiceUrl = `${domain}/invoice/${newOrderId}`;
 
-    let message = `*UPDATE MENS WEAR*\n`;
-    message += `Thank you for shopping with us!\n\n`;
-    message += `Total Due: ₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
-    message += `View and download your detailed digital receipt here:\n${invoiceUrl}`;
+    const shopEmoji = String.fromCodePoint(0x2728);
+    const checkEmoji = String.fromCodePoint(0x2705);
+    const tagEmoji = String.fromCodePoint(0x1F516);
+    const moneyEmoji = String.fromCodePoint(0x1F4B0);
+    const receiptEmoji = String.fromCodePoint(0x1F4E6);
+
+    let message = `${shopEmoji} *UPDATE MENS WEAR* ${shopEmoji}\n\n`;
+    message += `${checkEmoji} Thank you for shopping with us!\n\n`;
+    
+    if (calculatedDiscount > 0) {
+      message += `${tagEmoji} Discount Applied: ₹${calculatedDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    }
+    
+    message += `${moneyEmoji} Total Amount: ₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
+    message += `${receiptEmoji} View and download your detailed digital receipt here:\n${invoiceUrl}`;
 
     const encodedMessage = encodeURIComponent(message);
-    let whatsappUrl = `https://wa.me/91${customerPhone}?text=${encodedMessage}`;
+    let whatsappUrl = `https://api.whatsapp.com/send/?phone=91${customerPhone}&text=${encodedMessage}`;
 
-    if (appType === 'business') {
-      const isAndroid = /Android/i.test(navigator.userAgent);
-      if (isAndroid) {
-        whatsappUrl = `intent://send/?phone=91${customerPhone}&text=${encodedMessage}#Intent;package=com.whatsapp.w4b;scheme=whatsapp;end`;
-      }
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = whatsappUrl;
+    } else {
+      window.open(whatsappUrl, "_blank");
     }
-
-    window.open(whatsappUrl, "_blank");
 
     const newOrder: CompletedOrder = {
       id: newOrderId,
@@ -1212,7 +1221,7 @@ export default function POSBilling() {
     <div className="min-h-screen bg-[#FFFFFF] text-[#000000] flex flex-row font-sans overflow-hidden">
       {/* Catalog Modal */}
       {showCatalogModal && (
-        <div className="fixed inset-0 bg-[#990000]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-[#FFFFFF] border-2 border-black/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] ring-4 ring-black/5 w-full max-w-md overflow-hidden transform scale-100 animate-in zoom-in-95 duration-200">
             <div className="px-8 py-6 border-b border-black/10 flex justify-between items-center bg-[#FFFFFF]">
               <h3 className="font-bold text-lg text-[#000000] flex items-center gap-3">
@@ -1263,6 +1272,7 @@ export default function POSBilling() {
                   placeholder="e.g., 299"
                   className="minimal-input text-sm font-semibold"
                   value={newCatPrice}
+                  onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) =>
                     setNewCatPrice(
                       e.target.value === "" ? "" : parseFloat(e.target.value),
@@ -1407,14 +1417,14 @@ export default function POSBilling() {
             <div className="flex items-center bg-[#FFFFFF]/60 border border-black/10 rounded-full p-1 shadow-sm">
               <button
                 onClick={() => setIsOnline(false)}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${!isOnline ? "bg-[#FF0000] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${!isOnline ? "bg-[#E11D48] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
               >
                 <span className="w-2 h-2 rounded-full bg-[#E11D48]"></span>
                 OFFLINE (POS)
               </button>
               <button
                 onClick={() => setIsOnline(true)}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${isOnline ? "bg-[#FF0000] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${isOnline ? "bg-[#00A86B] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
               >
                 <span className="w-2 h-2 rounded-full bg-[#00A86B]"></span>
                 ONLINE ORDER
@@ -1682,7 +1692,7 @@ export default function POSBilling() {
                               </span>
                               <input
                                 type="number"
-                                className="w-full text-center bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors min-w-0"
+                                className="w-full min-w-[70px] sm:min-w-0 text-center bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors"
                                 value={item.price || ""}
                                 onChange={(e) =>
                                   updateItem(
@@ -1779,7 +1789,7 @@ export default function POSBilling() {
                       <span className="text-[#000000] font-semibold">
                         CUSTOMER
                       </span>
-                      <span className="font-bold text-[#000000]">
+                      <span className="font-bold text-[#000000] truncate max-w-[65%] text-right">
                         {customerName || "-"}
                       </span>
                     </div>
@@ -1849,6 +1859,7 @@ export default function POSBilling() {
                           type="number"
                           className="flex-1 text-right bg-white border border-black/10 rounded-lg px-3 py-2 text-xs font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none focus:border-[#FF0000] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none min-w-0"
                           value={discountValue || ""}
+                          onWheel={(e) => e.currentTarget.blur()}
                           onChange={(e) => {
                             setDiscountValue(parseFloat(e.target.value) || 0);
                             setSelectedCoupon("none");
@@ -1882,6 +1893,7 @@ export default function POSBilling() {
                           type="number"
                           className="w-20 text-right bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none focus:border-[#FF0000]"
                           value={deliveryFee || ""}
+                          onWheel={(e) => e.currentTarget.blur()}
                           onChange={(e) =>
                             setDeliveryFee(parseFloat(e.target.value) || 0)
                           }
@@ -1915,6 +1927,7 @@ export default function POSBilling() {
                         type="number"
                         className="w-full bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-base font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none transition-colors"
                         value={cashReceived || ""}
+                        onWheel={(e) => e.currentTarget.blur()}
                         onChange={(e) =>
                           setCashReceived(parseFloat(e.target.value) || 0)
                         }
@@ -2523,7 +2536,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider w-14">
                               Offline
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#E11D48] rounded-full transition-all duration-700"
                                 style={{
@@ -2539,7 +2552,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#00A86B] uppercase tracking-wider w-14">
                               Online
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#00A86B] rounded-full transition-all duration-700"
                                 style={{
@@ -2583,7 +2596,7 @@ export default function POSBilling() {
                                     ₹{item.revenue.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="h-1.5 bg-[#000000] rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                                   <div
                                     className="h-full bg-[#FF0000] rounded-full transition-all duration-700"
                                     style={{
@@ -2886,7 +2899,7 @@ export default function POSBilling() {
                                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#000000]"></div>
                               </div>
 
-                              <div className="w-full max-w-[20px] h-32 bg-[#000000] rounded-full relative overflow-hidden cursor-pointer">
+                              <div className="w-full max-w-[20px] h-32 bg-[#F3F4F6] rounded-full relative overflow-hidden cursor-pointer">
                                 <div
                                   className="absolute bottom-0 w-full bg-[#FF0000] rounded-full transition-all duration-1000 group-hover/bar:bg-[#EF4444]"
                                   style={{
@@ -2921,7 +2934,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider w-14">
                               Offline
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#E11D48] rounded-full transition-all duration-700"
                                 style={{
@@ -2937,7 +2950,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#00A86B] uppercase tracking-wider w-14">
                               Online
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#00A86B] rounded-full transition-all duration-700"
                                 style={{
@@ -2981,7 +2994,7 @@ export default function POSBilling() {
                                     ₹{item.revenue.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="h-1.5 bg-[#000000] rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
                                   <div
                                     className="h-full bg-[#FF0000] rounded-full transition-all duration-700"
                                     style={{
@@ -3095,7 +3108,7 @@ export default function POSBilling() {
                                   </td>
                                   <td className="p-3 w-1/4">
                                     <div className="flex items-center gap-3">
-                                      <div className="flex-1 h-2 bg-[#000000] rounded-full overflow-hidden">
+                                      <div className="flex-1 h-2 bg-[#F3F4F6] rounded-full overflow-hidden">
                                         <div
                                           className="h-full bg-[#FF0000] rounded-full"
                                           style={{ width: `${share}%` }}
