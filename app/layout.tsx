@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NaNi Mens's Clothing POS",
+  title: "UPDATE Men's Wear ",
   description: "",
 };
 

@@ -2820,7 +2820,7 @@ export default function POSBilling() {
 
                                 {/* Tooltip */}
                                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#000000] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                                  <div className="text-[9px] text-[#000000] font-semibold mb-0.5">
+                                  <div className="text-[9px] text-white/70 font-semibold mb-0.5">
                                     {monthNames[i]}
                                   </div>
                                   ₹{(monthRevenue[i] || 0).toLocaleString()}
@@ -2879,7 +2879,7 @@ export default function POSBilling() {
 
                               {/* Tooltip for exact weekly revenue */}
                               <div className="absolute bottom-[52px] mb-2 left-1/2 -translate-x-1/2 bg-[#000000] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                                <div className="text-[9px] text-[#000000] font-semibold mb-0.5">
+                                <div className="text-[9px] text-white/70 font-semibold mb-0.5">
                                   {dayNames[i]}
                                 </div>
                                 ₹{(weekRevenue[i] || 0).toLocaleString()}
