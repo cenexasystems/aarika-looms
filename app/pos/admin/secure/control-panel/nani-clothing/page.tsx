@@ -151,38 +151,38 @@ const SearchableItemInput = ({
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div
-        className={`relative cursor-pointer bg-[#F8F5F0] border ${isOpen ? "border-[#DBCABF] bg-white" : "border-[#E8DEC8]"} hover:border-[#DBCABF] rounded-lg px-4 py-2.5 transition-colors flex justify-between items-center group`}
+        className={`relative cursor-pointer bg-[#FFFFFF] border ${isOpen ? "border-black/10 bg-white" : "border-black/10"} hover:border-black/10 rounded-lg px-4 py-2.5 transition-colors flex justify-between items-center group`}
         onClick={() => {
           setIsOpen(!isOpen);
           setInternalSearch("");
         }}
       >
         <div className="flex-1">
-          <div className="font-semibold text-[#192836] text-sm">
+          <div className="font-semibold text-[#000000] text-sm">
             {item.name || (
-              <span className="text-[#4C3D32] font-normal">
+              <span className="text-[#000000] font-normal">
                 Select an item...
               </span>
             )}
           </div>
           {item.desc && !isOpen && (
-            <div className="text-[10px] text-[#4C3D32] mt-0.5">{item.desc}</div>
+            <div className="text-[10px] text-[#000000] mt-0.5">{item.desc}</div>
           )}
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-[#4C3D32] group-hover:text-[#570000] transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-[#000000] group-hover:text-[#FF0000] transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-[#FCFCFA] border border-[#DBCABF] rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200">
-          <div className="p-2 border-b border-[#E8DEC8] bg-[#FCFCFA]">
-            <div className="bg-[#F0EBE1] flex items-center px-3 py-2 rounded-md">
-              <Search className="w-4 h-4 text-[#4C3D32] mr-2" />
+        <div className="absolute z-50 w-full mt-2 bg-[#FFFFFF] border border-black/10 rounded-lg shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-2 border-b border-black/10 bg-[#FFFFFF]">
+            <div className="bg-[#FFFFFF] flex items-center px-3 py-2 rounded-md">
+              <Search className="w-4 h-4 text-[#000000] mr-2" />
               <input
                 type="text"
                 placeholder="Search catalog..."
-                className="w-full bg-transparent text-[#32231A] text-sm focus:outline-none placeholder:text-[#4C3D32]"
+                className="w-full bg-transparent text-[#000000] text-sm focus:outline-none placeholder:text-[#000000]"
                 value={internalSearch}
                 onChange={(e) => setInternalSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -196,7 +196,7 @@ const SearchableItemInput = ({
                 {filteredCatalog.map((catItem, idx) => (
                   <li
                     key={catItem.id}
-                    className={`px-5 py-3 cursor-pointer border-b border-[#E8DEC8]/30 last:border-0 transition-colors ${idx === selectedIndex ? "bg-[#F0EBE1] border-l-4 border-l-[#570000]" : "hover:bg-[#F0EBE1] border-l-4 border-l-transparent"}`}
+                    className={`px-5 py-3 cursor-pointer border-b border-transparent last:border-0 transition-colors ${idx === selectedIndex ? "bg-[#FFFFFF] border-l-4 border-l-[#FF0000]" : "hover:bg-[#FFFFFF] border-l-4 border-l-transparent"}`}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       updateItem(item.id, "name", catItem.name);
@@ -243,11 +243,11 @@ const SearchableItemInput = ({
                     }}
                     onMouseEnter={() => setSelectedIndex(idx)}
                   >
-                    <div className="text-sm font-bold text-[#32231A]">
+                    <div className="text-sm font-bold text-[#000000]">
                       {catItem.name}
                     </div>
                     {catItem.desc && (
-                      <div className="text-[11px] font-semibold uppercase tracking-wider text-[#4C3D32] mt-1">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-[#000000] mt-1">
                         {catItem.desc}
                       </div>
                     )}
@@ -255,7 +255,7 @@ const SearchableItemInput = ({
                 ))}
               </ul>
             ) : (
-              <div className="px-5 py-6 text-sm text-[#4C3D32] text-center font-semibold">
+              <div className="px-5 py-6 text-sm text-[#000000] text-center font-semibold">
                 Press Enter to use "{internalSearch}"
               </div>
             )}
@@ -347,15 +347,30 @@ export default function POSBilling() {
       const { data: productsData } = await supabase
         .from("products")
         .select("*");
+      const defaultCategories = [
+        "Shirts", "T-Shirts", "Pants", "Jeans", "Shorts", "Track Pants", "Joggers", 
+        "Hoodies", "Sweatshirts", "Jackets", "Blazers", "Innerwear", "Vests", "Socks", 
+        "Belts", "Wallets", "Caps", "Shoes", "Sandals", "Slippers", "Sunglasses", 
+        "Watches", "Handkerchiefs", "Ties", "Perfumes", "Bags"
+      ].map((name, index) => ({
+        id: `default-${index}`,
+        name,
+        desc: "Standard Category",
+        price: 0
+      }));
+
       if (productsData) {
-        setCatalog(
-          productsData.map((p) => ({
+        setCatalog([
+          ...defaultCategories,
+          ...productsData.map((p) => ({
             id: p.id,
             name: p.name,
             desc: p.description,
             price: p.default_price || undefined,
-          })),
-        );
+          }))
+        ]);
+      } else {
+        setCatalog(defaultCategories);
       }
 
       const { data: ordersData } = await supabase
@@ -674,7 +689,7 @@ export default function POSBilling() {
     const domain = window.location.origin;
     const invoiceUrl = `${domain}/invoice/${newOrderId}`;
 
-    let message = `*NaNi Men's Clothing*\n`;
+    let message = `*UPDATE MENS WEAR*\n`;
     message += `Thank you for shopping with us!\n\n`;
     message += `Total Due: ₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
     message += `View and download your detailed digital receipt here:\n${invoiceUrl}`;
@@ -981,10 +996,10 @@ export default function POSBilling() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-[#FCFCFA] flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#800000]"></div>
-          <span className="text-xs text-[#4C3D32] font-bold uppercase tracking-wider">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#CC0000]"></div>
+          <span className="text-xs text-[#000000] font-bold uppercase tracking-wider">
             Verifying Session...
           </span>
         </div>
@@ -994,30 +1009,30 @@ export default function POSBilling() {
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-[#FCFCFA] flex items-center justify-center p-4 font-sans">
-        <div className="w-full max-w-md bg-white border border-[#E8DEC8] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] overflow-hidden relative">
-          <div className="h-2 bg-[#800000] w-full" />
+      <div className="min-h-screen bg-[#FFFFFF] flex items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-md bg-white border border-black/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] overflow-hidden relative">
+          <div className="h-2 bg-[#CC0000] w-full" />
           <div className="p-8 flex flex-col items-center">
-            <div className="w-16 h-16 bg-[#800000]/10 rounded-2xl flex items-center justify-center shadow-inner mb-6">
-              <ShoppingBag className="w-8 h-8 text-[#800000]" />
+            <div className="w-24 h-24 mb-6 overflow-hidden flex items-center justify-center">
+              <img src="/logo.png" alt="UPDATE MENS WEAR Logo" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-xl font-black text-[#192836]  tracking-wider text-center">
-              NaNi Men's Clothing
+            <h2 className="text-xl font-black text-[#000000]  tracking-wider text-center">
+              UPDATE MENS WEAR
             </h2>
-            <p className="text-xs text-[#4C3D32] font-semibold tracking-wide text-center mt-1.5 mb-8">
+            <p className="text-xs text-[#000000] font-semibold tracking-wide text-center mt-1.5 mb-8">
               POS Billing System Access Control
             </p>
             <form onSubmit={handleVerifyPasscode} className="w-full space-y-5">
               <div>
-                <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                   Enter Passcode
                 </label>
                 <input
                   type="password"
-                  name="nani-pos-passcode"
+                  name="update-pos-passcode"
                   autoComplete="new-password"
                   placeholder="••••• •••••"
-                  className="w-full bg-[#FCFCFA]/40 border border-[#E8DEC8] hover:border-[#DBCABF] focus:border-[#800000] focus:bg-white rounded-lg px-4 py-3 text-center text-lg font-bold text-[#32231A] focus:outline-none transition-colors placeholder:text-[#4C3D32]/40 tracking-[0.25em]"
+                  className="w-full bg-[#FFFFFF]/40 border border-black/10 hover:border-black/10 focus:border-[#CC0000] focus:bg-white rounded-lg px-4 py-3 text-center text-lg font-bold text-[#000000] focus:outline-none transition-colors placeholder:text-[#000000]/40 tracking-[0.25em]"
                   value={passcode}
                   onChange={(e) => {
                     setPasscode(e.target.value);
@@ -1033,7 +1048,7 @@ export default function POSBilling() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3.5 bg-[#800000] hover:bg-[#660000] active:scale-98 text-[#FCFCFA] rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all shadow-md cursor-pointer"
+                className="w-full py-3.5 bg-[#CC0000] hover:bg-[#990000] active:scale-98 text-[#FFFFFF] rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all shadow-md cursor-pointer"
               >
                 Access System
               </button>
@@ -1194,28 +1209,28 @@ export default function POSBilling() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FCFCFA] text-[#32231A] flex flex-row font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] flex flex-row font-sans overflow-hidden">
       {/* Catalog Modal */}
       {showCatalogModal && (
-        <div className="fixed inset-0 bg-[#5B0E1B]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-[#FCFCFA] border-2 border-[#DBCABF] rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] ring-4 ring-black/5 w-full max-w-md overflow-hidden transform scale-100 animate-in zoom-in-95 duration-200">
-            <div className="px-8 py-6 border-b border-[#E8DEC8] flex justify-between items-center bg-[#F8F5F0]">
-              <h3 className="font-bold text-lg text-[#192836] flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#8C1D2F]/10 rounded-lg flex items-center justify-center">
-                  <PackagePlus className="w-5 h-5 text-[#8C1D2F]" />
+        <div className="fixed inset-0 bg-[#990000]/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-[#FFFFFF] border-2 border-black/10 rounded-xl shadow-[0_20px_60px_rgba(0,0,0,0.4)] ring-4 ring-black/5 w-full max-w-md overflow-hidden transform scale-100 animate-in zoom-in-95 duration-200">
+            <div className="px-8 py-6 border-b border-black/10 flex justify-between items-center bg-[#FFFFFF]">
+              <h3 className="font-bold text-lg text-[#000000] flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#FF0000]/10 rounded-lg flex items-center justify-center">
+                  <PackagePlus className="w-5 h-5 text-[#FF0000]" />
                 </div>
                 Add New Item
               </h3>
               <button
                 onClick={() => setShowCatalogModal(false)}
-                className="w-8 h-8 flex items-center justify-center text-[#4C3D32] hover:bg-[#E8DEC8] rounded-md transition-colors"
+                className="w-8 h-8 flex items-center justify-center text-[#000000] hover:bg-[#000000] rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="px-8 py-8 space-y-6">
               <div>
-                <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                   Item Name
                 </label>
                 <input
@@ -1228,7 +1243,7 @@ export default function POSBilling() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                   Description (Optional)
                 </label>
                 <input
@@ -1240,7 +1255,7 @@ export default function POSBilling() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                   Default Price (Optional)
                 </label>
                 <input
@@ -1257,7 +1272,7 @@ export default function POSBilling() {
               </div>
               <button
                 onClick={addToCatalog}
-                className="w-full py-4 mt-4 bg-[#5B0E1B] hover:bg-[#6E1B2A] text-[#FCFCFA] rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-colors"
+                className="w-full py-4 mt-4 bg-[#990000] hover:bg-[#CC0000] text-[#FFFFFF] rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-colors"
               >
                 Save to Catalog
               </button>
@@ -1276,14 +1291,14 @@ export default function POSBilling() {
 
       {/* Collapsible Left Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 bottom-0 left-0 bg-[#800000]/95 text-[#FCFCFA] flex flex-col justify-between h-screen shrink-0 shadow-xl z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-64 border-r border-white/10 translate-x-0" : "w-0 min-w-0 border-r-0 -translate-x-64 overflow-hidden"}`}
+        className={`fixed lg:sticky top-0 bottom-0 left-0 bg-[#0B0F19] text-[#FFFFFF] flex flex-col justify-between h-screen shrink-0 shadow-xl z-40 transition-all duration-300 ease-in-out ${isSidebarOpen ? "w-64 border-r border-white/10 translate-x-0" : "w-0 min-w-0 border-r-0 -translate-x-64 overflow-hidden"}`}
       >
         <div className="w-64 flex flex-col justify-between h-full shrink-0 overflow-hidden relative">
           <div className="flex flex-col">
             {/* Header branding */}
             <div className="p-6 border-b border-white/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-[#FCFCFA] rounded-lg flex items-center justify-center shadow-inner overflow-hidden">
+                <div className="w-12 h-12 bg-[#FFFFFF] rounded-xl flex items-center justify-center shadow-inner overflow-hidden shrink-0">
                   <img
                     src="/logo.png"
                     alt="Logo"
@@ -1291,8 +1306,8 @@ export default function POSBilling() {
                   />
                 </div>
                 <div>
-                  <span className="font-black text-sm tracking-tight text-[#FCFCFA] block ">
-                    NaNi Men's Clothing
+                  <span className="font-black text-sm tracking-tight text-[#FFFFFF] block ">
+                    UPDATE MENS WEAR
                   </span>
                 </div>
               </div>
@@ -1300,7 +1315,7 @@ export default function POSBilling() {
               {/* Close Button Inside Sidebar */}
               <button
                 onClick={() => setIsSidebarOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-[#DBCABF] hover:text-white transition-all cursor-pointer"
+                className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all cursor-pointer"
                 title="Close Menu"
               >
                 <X className="w-5 h-5" />
@@ -1313,8 +1328,8 @@ export default function POSBilling() {
                 onClick={() => setActiveTab("billing")}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                   activeTab === "billing"
-                    ? "bg-[#FCFCFA] text-[#800000] shadow-lg scale-102"
-                    : "text-[#DBCABF] hover:bg-white/10 hover:text-white"
+                    ? "bg-[#FFFFFF] text-[#CC0000] shadow-lg scale-102"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Receipt className="w-5 h-5" />
@@ -1324,8 +1339,8 @@ export default function POSBilling() {
                 onClick={() => setActiveTab("orders")}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                   activeTab === "orders"
-                    ? "bg-[#FCFCFA] text-[#800000] shadow-lg scale-102"
-                    : "text-[#DBCABF] hover:bg-white/10 hover:text-white"
+                    ? "bg-[#FFFFFF] text-[#CC0000] shadow-lg scale-102"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <History className="w-5 h-5" />
@@ -1335,8 +1350,8 @@ export default function POSBilling() {
                 onClick={() => setActiveTab("analytics")}
                 className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer ${
                   activeTab === "analytics"
-                    ? "bg-[#FCFCFA] text-[#800000] shadow-lg scale-102"
-                    : "text-[#DBCABF] hover:bg-white/10 hover:text-white"
+                    ? "bg-[#FFFFFF] text-[#CC0000] shadow-lg scale-102"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <BarChart2 className="w-5 h-5" />
@@ -1356,9 +1371,12 @@ export default function POSBilling() {
           </div>
 
           {/* Footer branding */}
-          <div className="p-6 border-t border-white/10 text-center">
-            <p className="text-[9px] text-[#DBCABF] mt-1 font-semibold uppercase tracking-wider">
-              v1.2.0 • Premium POS
+          <div className="p-6 border-t border-white/10 flex items-center justify-start gap-4">
+            <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center bg-black shrink-0">
+              <span className="text-white font-bold text-sm">U</span>
+            </div>
+            <p className="text-[10px] text-white/40 mt-1 font-semibold uppercase tracking-wider">
+              V2.1.0 • PREMIUM POS
             </p>
           </div>
         </div>
@@ -1366,37 +1384,37 @@ export default function POSBilling() {
       {/* Main Content Area */}
       <main className="flex-1 h-screen overflow-y-auto px-3 sm:px-8 lg:px-12 pt-3 pb-8 relative flex flex-col animate-in fade-in duration-300">
         {/* Global Top Navbar */}
-        <header className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-[#E8DEC8]/60 w-full mb-6 gap-4">
+        <header className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 border-b border-black/10 w-full mb-6 gap-4">
           <div className="flex items-center gap-4">
             {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="w-9 h-9 bg-white border border-[#E8DEC8] hover:bg-[#F0EBE1]/40 rounded-lg flex items-center justify-center transition-all shadow-sm cursor-pointer"
+                className="w-9 h-9 bg-white border border-black/10 hover:bg-[#FFFFFF]/40 rounded-lg flex items-center justify-center transition-all shadow-sm cursor-pointer"
                 title="Open Menu"
               >
-                <Menu className="w-4.5 h-4.5 text-[#8C1D2F]" />
+                <Menu className="w-4.5 h-4.5 text-[#FF0000]" />
               </button>
             )}
             <div>
-              <h1 className="text-lg font-black text-[#192836] tracking-tight ">
-                NaNi Men's Clothing
+              <h1 className="text-lg font-black text-[#000000] tracking-tight ">
+                UPDATE MENS WEAR
               </h1>
             </div>
           </div>
 
           {/* OFFLINE / ONLINE Toggle (only shown when billing tab is active) */}
           {activeTab === "billing" && (
-            <div className="flex items-center bg-[#F0EBE1]/60 border border-[#E8DEC8]/80 rounded-full p-1 shadow-sm">
+            <div className="flex items-center bg-[#FFFFFF]/60 border border-black/10 rounded-full p-1 shadow-sm">
               <button
                 onClick={() => setIsOnline(false)}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${!isOnline ? "bg-[#8C1D2F] text-[#FCFCFA] shadow-sm" : "text-[#4C3D32] hover:text-[#32231A]"}`}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${!isOnline ? "bg-[#FF0000] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
               >
                 <span className="w-2 h-2 rounded-full bg-[#E11D48]"></span>
                 OFFLINE (POS)
               </button>
               <button
                 onClick={() => setIsOnline(true)}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${isOnline ? "bg-[#8C1D2F] text-[#FCFCFA] shadow-sm" : "text-[#4C3D32] hover:text-[#32231A]"}`}
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider transition-all uppercase cursor-pointer ${isOnline ? "bg-[#FF0000] text-[#FFFFFF] shadow-sm" : "text-[#000000] hover:text-[#000000]"}`}
               >
                 <span className="w-2 h-2 rounded-full bg-[#00A86B]"></span>
                 ONLINE ORDER
@@ -1408,14 +1426,14 @@ export default function POSBilling() {
         {activeTab === "billing" && (
           <div className="flex-1 flex flex-col gap-6 max-w-[1400px] min-w-0 mx-auto w-full">
             {/* Subheader Accent Bar and Title */}
-            <div className="flex justify-between items-center py-2 border-b border-[#E8DEC8]/60 w-full">
+            <div className="flex justify-between items-center py-2 border-b border-black/10 w-full">
               <div className="flex items-center gap-4">
-                <span className="w-1.5 h-8 bg-[#8C1D2F] rounded-full"></span>
+                <span className="w-1.5 h-8 bg-[#FF0000] rounded-full"></span>
                 <div>
-                  <h2 className="text-xl font-black text-[#192836] tracking-tight">
+                  <h2 className="text-xl font-black text-[#000000] tracking-tight">
                     POS Billing Panel
                   </h2>
-                  <p className="text-[11px] text-[#4C3D32] font-semibold mt-0.5">
+                  <p className="text-[11px] text-[#000000] font-semibold mt-0.5">
                     Quick Invoice generator & database synced checkout
                   </p>
                 </div>
@@ -1427,34 +1445,34 @@ export default function POSBilling() {
               {/* Left Column */}
               <div className="w-full lg:w-[60%] xl:w-[65%] flex flex-col gap-6 h-auto lg:h-full">
                 {/* Customer Details */}
-                <div className="flex-shrink-0 bg-white border border-[#E8DEC8] rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 relative overflow-hidden group">
-                  <h2 className="text-base font-black flex items-center gap-3 text-[#192836] mb-6 tracking-tight">
-                    <User className="w-4 h-4 text-[#8C1D2F]" />
+                <div className="flex-shrink-0 bg-white border border-black/10 rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 relative overflow-hidden group">
+                  <h2 className="text-base font-black flex items-center gap-3 text-[#000000] mb-6 tracking-tight">
+                    <User className="w-4 h-4 text-[#FF0000]" />
                     Customer Details
                   </h2>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     <div>
-                      <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                      <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                         Customer Name
                       </label>
                       <input
                         type="text"
                         placeholder="Enter name"
-                        className="w-full bg-[#FCFCFA]/40 border border-[#E8DEC8] hover:border-[#DBCABF] focus:border-[#8C1D2F] focus:bg-white rounded-lg px-4 py-2.5 text-[#32231A] text-sm font-semibold focus:outline-none transition-colors placeholder:text-[#4C3D32] placeholder:font-normal shadow-sm"
+                        className="w-full bg-[#FFFFFF]/40 border border-black/10 hover:border-black/10 focus:border-[#FF0000] focus:bg-white rounded-lg px-4 py-2.5 text-[#000000] text-sm font-semibold focus:outline-none transition-colors placeholder:text-[#000000] placeholder:font-normal shadow-sm"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.15em] mb-2">
+                      <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.15em] mb-2">
                         Mobile Number (WhatsApp)
                       </label>
                       <input
                         type="tel"
                         placeholder="Enter 10-digit number"
                         maxLength={10}
-                        className="w-full bg-[#FCFCFA]/40 border border-[#E8DEC8] hover:border-[#DBCABF] focus:border-[#8C1D2F] focus:bg-white rounded-lg px-4 py-2.5 text-[#32231A] text-sm font-semibold focus:outline-none transition-colors placeholder:text-[#4C3D32] placeholder:font-normal shadow-sm"
+                        className="w-full bg-[#FFFFFF]/40 border border-black/10 hover:border-black/10 focus:border-[#FF0000] focus:bg-white rounded-lg px-4 py-2.5 text-[#000000] text-sm font-semibold focus:outline-none transition-colors placeholder:text-[#000000] placeholder:font-normal shadow-sm"
                         value={customerPhone}
                         onChange={(e) =>
                           setCustomerPhone(
@@ -1467,16 +1485,16 @@ export default function POSBilling() {
                 </div>
 
                 {/* Order Items Ledger */}
-                <div className="flex-1 bg-white border border-[#E8DEC8] rounded-xl shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col overflow-visible">
-                  <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 pt-4 sm:pt-6 pb-2 border-b border-[#E8DEC8]/40 gap-4">
-                    <h2 className="text-base font-black flex items-center gap-3 text-[#192836] tracking-tight">
-                      <Receipt className="w-4 h-4 text-[#8C1D2F]" />
+                <div className="flex-1 bg-white border border-black/10 rounded-xl shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col overflow-visible">
+                  <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 pt-4 sm:pt-6 pb-2 border-b border-transparent gap-4">
+                    <h2 className="text-base font-black flex items-center gap-3 text-[#000000] tracking-tight">
+                      <Receipt className="w-4 h-4 text-[#FF0000]" />
                       Order Items
                     </h2>
                     <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-start sm:justify-end">
                       <button
                         onClick={clearOrder}
-                        className="text-[10px] font-bold text-[#4C3D32] bg-[#F8F5F0] hover:bg-[#F0EBE1] border border-[#E8DEC8] px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="text-[10px] font-bold text-[#000000] bg-[#FFFFFF] hover:bg-[#FFFFFF] border border-black/10 px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> Clear Order
                       </button>
@@ -1488,14 +1506,14 @@ export default function POSBilling() {
                           setCatalogTargetRowId(null);
                           setShowCatalogModal(true);
                         }}
-                        className="text-[10px] font-bold text-[#192836] bg-[#FCFCFA] hover:bg-[#F0EBE1] border border-[#DBCABF] px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="text-[10px] font-bold text-[#000000] bg-[#FFFFFF] hover:bg-[#FFFFFF] border border-black/10 px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <PackagePlus className="w-3.5 h-3.5 text-[#8C1D2F]" />{" "}
+                        <PackagePlus className="w-3.5 h-3.5 text-[#FF0000]" />{" "}
                         Add To Catalog
                       </button>
                       <button
                         onClick={addItem}
-                        className="text-[10px] font-bold text-[#8C1D2F] bg-[#8C1D2F]/5 hover:bg-[#8C1D2F]/10 border border-[#8C1D2F]/20 px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="text-[10px] font-bold text-[#FF0000] bg-[#FF0000]/5 hover:bg-[#FF0000]/10 border border-[#FF0000]/20 px-4 py-2 rounded-lg uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" /> Add Custom Item
                       </button>
@@ -1504,7 +1522,7 @@ export default function POSBilling() {
 
                   <div className="flex-1 px-4 sm:px-6 pb-4 sm:pb-6 overflow-visible">
                     {/* Table Header */}
-                    <div className="hidden sm:grid grid-cols-12 gap-4 pb-3 border-b border-[#E8DEC8] text-[9px] font-black text-[#4C3D32] uppercase tracking-[0.15em] mt-4 mb-2">
+                    <div className="hidden sm:grid grid-cols-12 gap-4 pb-3 border-b border-black/10 text-[9px] font-black text-[#000000] uppercase tracking-[0.15em] mt-4 mb-2">
                       <div className="col-span-7 pl-2">
                         Item Name / Description
                       </div>
@@ -1518,14 +1536,14 @@ export default function POSBilling() {
                       {items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-stretch sm:items-center group border-b border-[#E8DEC8]/40 pb-4 pt-1 overflow-visible relative"
+                          className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-stretch sm:items-center group border-b border-transparent pb-4 pt-1 overflow-visible relative"
                         >
                           {/* Item Name / Description Input + Catalog Button */}
                           <div className="col-span-7 relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
                             <input
                               type="text"
                               placeholder="Type custom product description..."
-                              className="flex-1 bg-white border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-4 py-2 text-xs font-semibold text-[#32231A] focus:outline-none transition-colors placeholder:text-[#4C3D32] min-w-0"
+                              className="flex-1 bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-4 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors placeholder:text-[#000000] min-w-0"
                               value={item.name}
                               onChange={(e) =>
                                 updateItem(item.id, "name", e.target.value)
@@ -1540,7 +1558,7 @@ export default function POSBilling() {
                                 );
                                 setCatalogSearch("");
                               }}
-                              className="flex items-center justify-center gap-1.5 border border-[#8C1D2F]/30 bg-[#8C1D2F]/5 text-[#8C1D2F] hover:bg-[#8C1D2F]/10 px-3 py-2 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider shrink-0 cursor-pointer w-full sm:w-auto"
+                              className="flex items-center justify-center gap-1.5 border border-[#FF0000]/30 bg-[#FF0000]/5 text-[#FF0000] hover:bg-[#FF0000]/10 px-3 py-2 rounded-lg text-[10px] font-bold transition-colors uppercase tracking-wider shrink-0 cursor-pointer w-full sm:w-auto"
                             >
                               <List className="w-3.5 h-3.5" />
                               Catalog
@@ -1548,12 +1566,12 @@ export default function POSBilling() {
 
                             {/* Catalog Dropdown Popover */}
                             {activeCatalogRowId === item.id && (
-                              <div className="absolute z-[80] top-full left-0 mt-1 w-full sm:w-80 max-w-[calc(100vw-2.5rem)] bg-[#FCFCFA] border-2 border-[#DBCABF] rounded-lg shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                                <div className="p-2 border-b border-[#E8DEC8] bg-[#F8F5F0] flex items-center justify-between gap-2">
+                              <div className="absolute z-[80] top-full left-0 mt-1 w-full sm:w-80 max-w-[calc(100vw-2.5rem)] bg-[#FFFFFF] border-2 border-black/10 rounded-lg shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                                <div className="p-2 border-b border-black/10 bg-[#FFFFFF] flex items-center justify-between gap-2">
                                   <input
                                     type="text"
                                     placeholder="Search catalog items..."
-                                    className="w-full bg-white border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-md px-3 py-1.5 text-xs font-semibold focus:outline-none transition-colors"
+                                    className="w-full bg-white border border-black/10 focus:border-[#FF0000] rounded-md px-3 py-1.5 text-xs font-semibold focus:outline-none transition-colors"
                                     value={catalogSearch}
                                     onChange={(e) =>
                                       setCatalogSearch(e.target.value)
@@ -1562,7 +1580,7 @@ export default function POSBilling() {
                                   />
                                   <button
                                     onClick={() => setActiveCatalogRowId(null)}
-                                    className="text-[#4C3D32] hover:text-[#8C1D2F] cursor-pointer"
+                                    className="text-[#000000] hover:text-[#FF0000] cursor-pointer"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
@@ -1584,7 +1602,7 @@ export default function POSBilling() {
                                       .map((catItem) => (
                                         <div
                                           key={catItem.id}
-                                          className="w-full flex items-center border-b border-[#E8DEC8]/30 last:border-0 hover:bg-[#F0EBE1] transition-colors"
+                                          className="w-full flex items-center border-b border-transparent last:border-0 hover:bg-[#FFFFFF] transition-colors"
                                         >
                                           <button
                                             className="flex-1 text-left px-4 py-2.5 flex flex-col cursor-pointer"
@@ -1604,16 +1622,16 @@ export default function POSBilling() {
                                               setActiveCatalogRowId(null);
                                             }}
                                           >
-                                            <span className="text-xs font-bold text-[#32231A]">
+                                            <span className="text-xs font-bold text-[#000000]">
                                               {catItem.name}
                                             </span>
                                             {catItem.desc && (
-                                              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#4C3D32] mt-0.5">
+                                              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#000000] mt-0.5">
                                                 {catItem.desc}
                                               </span>
                                             )}
                                             {catItem.price !== undefined && (
-                                              <span className="text-[10px] font-bold text-[#8C1D2F] mt-0.5">
+                                              <span className="text-[10px] font-bold text-[#FF0000] mt-0.5">
                                                 ₹{catItem.price}
                                               </span>
                                             )}
@@ -1625,7 +1643,7 @@ export default function POSBilling() {
                                                 deleteFromCatalog(catItem.id);
                                               }
                                             }}
-                                            className="px-4 py-2.5 text-[#4C3D32] hover:text-[#8C1D2F] transition-colors cursor-pointer"
+                                            className="px-4 py-2.5 text-[#000000] hover:text-[#FF0000] transition-colors cursor-pointer"
                                             title="Delete item"
                                           >
                                             <Trash2 className="w-4 h-4" />
@@ -1634,7 +1652,7 @@ export default function POSBilling() {
                                       ))
                                   ) : (
                                     <div className="px-4 py-4 text-center">
-                                      <div className="text-xs text-[#4C3D32] font-semibold mb-2">
+                                      <div className="text-xs text-[#000000] font-semibold mb-2">
                                         No items match "{catalogSearch}"
                                       </div>
                                       <button
@@ -1644,7 +1662,7 @@ export default function POSBilling() {
                                           setShowCatalogModal(true);
                                           setActiveCatalogRowId(null);
                                         }}
-                                        className="text-[10px] font-bold text-[#8C1D2F] bg-[#8C1D2F]/10 hover:bg-[#8C1D2F]/20 px-3 py-1.5 rounded uppercase tracking-wider transition-colors cursor-pointer"
+                                        className="text-[10px] font-bold text-[#FF0000] bg-[#FF0000]/10 hover:bg-[#FF0000]/20 px-3 py-1.5 rounded uppercase tracking-wider transition-colors cursor-pointer"
                                       >
                                         + Add to Catalog
                                       </button>
@@ -1659,12 +1677,12 @@ export default function POSBilling() {
                           <div className="col-span-5 flex items-center justify-between sm:grid sm:grid-cols-5 gap-3 sm:gap-4 w-full">
                             {/* Price Input */}
                             <div className="flex-1 sm:col-span-2 flex items-center gap-2 sm:block">
-                              <span className="text-[10px] font-bold text-[#4C3D32] uppercase sm:hidden shrink-0">
+                              <span className="text-[10px] font-bold text-[#000000] uppercase sm:hidden shrink-0">
                                 Price:
                               </span>
                               <input
                                 type="number"
-                                className="w-full text-center bg-white border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-3 py-2 text-xs font-semibold text-[#32231A] focus:outline-none transition-colors min-w-0"
+                                className="w-full text-center bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors min-w-0"
                                 value={item.price || ""}
                                 onChange={(e) =>
                                   updateItem(
@@ -1680,12 +1698,12 @@ export default function POSBilling() {
 
                             {/* Quantity Counter */}
                             <div className="flex-1 sm:col-span-2 flex items-center justify-end gap-2 sm:block">
-                              <span className="text-[10px] font-bold text-[#4C3D32] uppercase sm:hidden shrink-0">
+                              <span className="text-[10px] font-bold text-[#000000] uppercase sm:hidden shrink-0">
                                 Qty:
                               </span>
-                              <div className="flex items-center border border-[#E8DEC8] bg-white rounded-lg overflow-hidden h-[36px] max-w-[90px] shrink-0">
+                              <div className="flex items-center border border-black/10 bg-white rounded-lg overflow-hidden h-[36px] max-w-[90px] shrink-0">
                                 <button
-                                  className="w-7 h-full flex items-center justify-center text-[#4C3D32] hover:bg-[#F0EBE1] hover:text-[#8C1D2F] font-bold text-xs transition-colors cursor-pointer"
+                                  className="w-7 h-full flex items-center justify-center text-[#000000] hover:bg-[#FFFFFF] hover:text-[#FF0000] font-bold text-xs transition-colors cursor-pointer"
                                   onClick={() =>
                                     updateItem(
                                       item.id,
@@ -1696,11 +1714,11 @@ export default function POSBilling() {
                                 >
                                   −
                                 </button>
-                                <span className="flex-1 text-center font-bold text-xs text-[#32231A] min-w-[18px]">
+                                <span className="flex-1 text-center font-bold text-xs text-[#000000] min-w-[18px]">
                                   {item.qty}
                                 </span>
                                 <button
-                                  className="w-7 h-full flex items-center justify-center text-[#4C3D32] hover:bg-[#F0EBE1] hover:text-[#8C1D2F] font-bold text-xs transition-colors cursor-pointer"
+                                  className="w-7 h-full flex items-center justify-center text-[#000000] hover:bg-[#FFFFFF] hover:text-[#FF0000] font-bold text-xs transition-colors cursor-pointer"
                                   onClick={() =>
                                     updateItem(item.id, "qty", item.qty + 1)
                                   }
@@ -1714,7 +1732,7 @@ export default function POSBilling() {
                             <div className="sm:col-span-1 flex justify-end shrink-0">
                               <button
                                 onClick={() => removeItem(item.id)}
-                                className="text-[#DBCABF] hover:text-[#E11D48] hover:bg-[#FEE2E2] p-2 rounded-lg border border-[#E8DEC8]/60 hover:border-transparent transition-colors flex items-center justify-center cursor-pointer"
+                                className="text-[#000000] hover:text-[#E11D48] hover:bg-[#FEE2E2] p-2 rounded-lg border border-black/10 hover:border-transparent transition-colors flex items-center justify-center cursor-pointer"
                                 title="Remove Item"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -1728,14 +1746,14 @@ export default function POSBilling() {
                 </div>
               </div>{" "}
               {/* Right Column - Premium Light Order Panel */}
-              <div className="w-full lg:w-[40%] xl:w-[35%] flex flex-col shrink-0 bg-white text-[#32231A] border border-[#E8DEC8] rounded-2xl shadow-sm lg:sticky lg:top-28 lg:self-start transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden group">
-                <div className="p-4 sm:p-6 pb-4 border-b border-[#E8DEC8]/60 flex justify-between items-center bg-[#F8F5F0]">
-                  <h2 className="text-base font-black flex items-center gap-3 text-[#192836] tracking-tight">
-                    <ShoppingBag className="w-4 h-4 text-[#8C1D2F]" />
+              <div className="w-full lg:w-[40%] xl:w-[35%] flex flex-col shrink-0 bg-white text-[#000000] border border-black/10 rounded-2xl shadow-sm lg:sticky lg:top-28 lg:self-start transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 overflow-hidden group">
+                <div className="p-4 sm:p-6 pb-4 border-b border-black/10 flex justify-between items-center bg-[#FFFFFF]">
+                  <h2 className="text-base font-black flex items-center gap-3 text-[#000000] tracking-tight">
+                    <ShoppingBag className="w-4 h-4 text-[#FF0000]" />
                     Current Order
                   </h2>
                   <span
-                    className={`flex items-center gap-2 bg-white border border-[#E8DEC8] px-3 py-1 rounded-full font-bold text-[9px] ${isOnline ? "text-[#00A86B]" : "text-[#E11D48]"}`}
+                    className={`flex items-center gap-2 bg-white border border-black/10 px-3 py-1 rounded-full font-bold text-[9px] ${isOnline ? "text-[#00A86B]" : "text-[#E11D48]"}`}
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-[#00A86B]" : "bg-[#E11D48]"}`}
@@ -1746,9 +1764,9 @@ export default function POSBilling() {
 
                 <div className="p-4 sm:p-6 space-y-5">
                   {/* Customer Details Box */}
-                  <div className="bg-[#FCFCFA]/40 border border-[#E8DEC8] rounded-xl p-4 space-y-2.5">
+                  <div className="bg-[#FFFFFF]/40 border border-black/10 rounded-xl p-4 space-y-2.5">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#4C3D32] font-semibold">
+                      <span className="text-[#000000] font-semibold">
                         SOURCE
                       </span>
                       <span
@@ -1758,26 +1776,26 @@ export default function POSBilling() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#4C3D32] font-semibold">
+                      <span className="text-[#000000] font-semibold">
                         CUSTOMER
                       </span>
-                      <span className="font-bold text-[#192836]">
+                      <span className="font-bold text-[#000000]">
                         {customerName || "-"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-[#4C3D32] font-semibold">
+                      <span className="text-[#000000] font-semibold">
                         PHONE
                       </span>
-                      <span className="font-bold text-[#192836]">
+                      <span className="font-bold text-[#000000]">
                         {customerPhone || "-"}
                       </span>
                     </div>
 
                     {/* Items summary list inside customer details box */}
-                    <div className="border-t border-[#E8DEC8]/60 pt-2.5 mt-2.5">
+                    <div className="border-t border-black/10 pt-2.5 mt-2.5">
                       {items.filter((i) => i.name).length === 0 ? (
-                        <div className="text-center py-2 text-[10px] text-[#4C3D32] font-semibold italic">
+                        <div className="text-center py-2 text-[10px] text-[#000000] font-semibold italic">
                           No items added yet
                         </div>
                       ) : (
@@ -1789,10 +1807,10 @@ export default function POSBilling() {
                                 key={item.id}
                                 className="flex justify-between items-center text-[10px]"
                               >
-                                <span className="text-[#32231A] font-semibold">
+                                <span className="text-[#000000] font-semibold">
                                   {item.qty}x {item.name}
                                 </span>
-                                <span className="font-bold text-[#8C1D2F]">
+                                <span className="font-bold text-[#FF0000]">
                                   ₹
                                   {(item.price * item.qty).toLocaleString(
                                     undefined,
@@ -1810,7 +1828,7 @@ export default function POSBilling() {
                   <div className="space-y-4 pt-1">
                     {/* Manual Discount */}
                     <div>
-                      <label className="block text-[10px] font-bold text-[#4C3D32] uppercase tracking-[0.1em] mb-1.5">
+                      <label className="block text-[10px] font-bold text-[#000000] uppercase tracking-[0.1em] mb-1.5">
                         Manual Discount
                       </label>
                       <div className="flex gap-2">
@@ -1822,14 +1840,14 @@ export default function POSBilling() {
                             );
                             setSelectedCoupon("none");
                           }}
-                          className="bg-white border border-[#E8DEC8] text-[#32231A] rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#8C1D2F] cursor-pointer"
+                          className="bg-white border border-black/10 text-[#000000] rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-[#FF0000] cursor-pointer"
                         >
                           <option value="fixed">₹</option>
                           <option value="percent">%</option>
                         </select>
                         <input
                           type="number"
-                          className="flex-1 text-right bg-white border border-[#E8DEC8] rounded-lg px-3 py-2 text-xs font-bold text-[#32231A] placeholder:text-[#4C3D32] focus:outline-none focus:border-[#8C1D2F] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none min-w-0"
+                          className="flex-1 text-right bg-white border border-black/10 rounded-lg px-3 py-2 text-xs font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none focus:border-[#FF0000] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none min-w-0"
                           value={discountValue || ""}
                           onChange={(e) => {
                             setDiscountValue(parseFloat(e.target.value) || 0);
@@ -1841,16 +1859,16 @@ export default function POSBilling() {
                     </div>
 
                     {/* Subtotal & Delivery Breakdown */}
-                    <div className="space-y-2.5 pt-2 border-t border-[#E8DEC8]/60">
+                    <div className="space-y-2.5 pt-2 border-t border-black/10">
                       <div className="flex justify-between items-center text-xs font-semibold">
-                        <span className="text-[#4C3D32]">
+                        <span className="text-[#000000]">
                           Subtotal (
                           {items
                             .filter((i) => i.name)
                             .reduce((sum, i) => sum + i.qty, 0)}{" "}
                           items)
                         </span>
-                        <span className="font-bold text-[#32231A]">
+                        <span className="font-bold text-[#000000]">
                           ₹
                           {subtotal.toLocaleString(undefined, {
                             minimumFractionDigits: 2,
@@ -1859,10 +1877,10 @@ export default function POSBilling() {
                       </div>
 
                       <div className="flex justify-between items-center text-xs font-semibold">
-                        <span className="text-[#4C3D32]">Delivery</span>
+                        <span className="text-[#000000]">Delivery</span>
                         <input
                           type="number"
-                          className="w-20 text-right bg-white border border-[#E8DEC8] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#32231A] placeholder:text-[#4C3D32] focus:outline-none focus:border-[#8C1D2F]"
+                          className="w-20 text-right bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none focus:border-[#FF0000]"
                           value={deliveryFee || ""}
                           onChange={(e) =>
                             setDeliveryFee(parseFloat(e.target.value) || 0)
@@ -1873,11 +1891,11 @@ export default function POSBilling() {
                     </div>
 
                     {/* Grand Total */}
-                    <div className="flex justify-between items-center text-sm font-bold pt-4 border-t border-[#E8DEC8]">
-                      <span className="text-[#192836] uppercase tracking-wider">
+                    <div className="flex justify-between items-center text-sm font-bold pt-4 border-t border-black/10">
+                      <span className="text-[#000000] uppercase tracking-wider">
                         Grand Total
                       </span>
-                      <span className="text-xl text-[#8C1D2F] font-black">
+                      <span className="text-xl text-[#FF0000] font-black">
                         ₹
                         {grandTotal.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
@@ -1886,16 +1904,16 @@ export default function POSBilling() {
                     </div>
 
                     {/* Cash Payment */}
-                    <div className="bg-[#FCFCFA]/40 border border-[#E8DEC8] rounded-xl p-4 mt-2">
-                      <span className="block text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider mb-0.5">
+                    <div className="bg-[#FFFFFF]/40 border border-black/10 rounded-xl p-4 mt-2">
+                      <span className="block text-[9px] font-bold text-[#000000] uppercase tracking-wider mb-0.5">
                         Cash Payment
                       </span>
-                      <label className="block text-[10px] font-bold text-[#32231A] mb-2.5">
+                      <label className="block text-[10px] font-bold text-[#000000] mb-2.5">
                         Amount Received (₹)
                       </label>
                       <input
                         type="number"
-                        className="w-full bg-white border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-3 py-2 text-base font-bold text-[#32231A] placeholder:text-[#4C3D32] focus:outline-none transition-colors"
+                        className="w-full bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-base font-bold text-[#000000] placeholder:text-[#000000] focus:outline-none transition-colors"
                         value={cashReceived || ""}
                         onChange={(e) =>
                           setCashReceived(parseFloat(e.target.value) || 0)
@@ -1906,8 +1924,8 @@ export default function POSBilling() {
 
                     {/* Change Return */}
                     {cashReceived > 0 && (
-                      <div className="flex justify-between items-center bg-white border border-[#E8DEC8] rounded-lg p-3 text-xs">
-                        <span className="font-bold text-[#4C3D32] uppercase tracking-[0.05em]">
+                      <div className="flex justify-between items-center bg-white border border-black/10 rounded-lg p-3 text-xs">
+                        <span className="font-bold text-[#000000] uppercase tracking-[0.05em]">
                           Change Return
                         </span>
                         <span
@@ -1950,18 +1968,18 @@ export default function POSBilling() {
             {/* Header Panel */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
               <div>
-                <h2 className="text-[28px] font-black text-[#192836] tracking-tight">
+                <h2 className="text-[28px] font-black text-[#000000] tracking-tight">
                   Order History
                 </h2>
-                <p className="text-xs text-[#4C3D32] font-semibold mt-1">
+                <p className="text-xs text-[#000000] font-semibold mt-1">
                   Manage and track past invoices
                 </p>
               </div>
 
               {orders.length > 0 && (
                 <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                  <div className="flex flex-wrap items-center bg-[#F0EBE1] border border-[#E8DEC8] rounded-xl p-1 gap-1 max-w-full">
-                    <span className="text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider px-2">
+                  <div className="flex flex-wrap items-center bg-[#FFFFFF] border border-black/10 rounded-xl p-1 gap-1 max-w-full">
+                    <span className="text-[9px] font-bold text-[#000000] uppercase tracking-wider px-2">
                       Period:
                     </span>
                     {(["all", "today", "week", "month", "year"] as const).map(
@@ -1987,8 +2005,8 @@ export default function POSBilling() {
                             }}
                             className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                               isActive
-                                ? "bg-[#5B0E1B] text-[#FCFCFA] shadow-sm"
-                                : "text-[#4C3D32] hover:bg-[#E8DEC8]/50"
+                                ? "bg-[#990000] text-[#FFFFFF] shadow-sm"
+                                : "text-[#000000] hover:bg-[#000000]/50"
                             }`}
                           >
                             {displayLabel}
@@ -1998,9 +2016,9 @@ export default function POSBilling() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center border rounded-xl px-3 py-1.5 gap-2 shadow-sm bg-white border-[#E8DEC8] min-w-0">
+                  <div className="flex flex-wrap items-center border rounded-xl px-3 py-1.5 gap-2 shadow-sm bg-white border-black/10 min-w-0">
                     <div className="flex items-center gap-1">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#000000]">
                         From:
                       </span>
                       <input
@@ -2010,11 +2028,11 @@ export default function POSBilling() {
                           setHistoryPeriod("custom");
                           setHistoryStartDate(e.target.value);
                         }}
-                        className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#192836] w-[115px]"
+                        className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#000000] w-[115px]"
                       />
                     </div>
                     <div className="flex items-center gap-1">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#000000]">
                         To:
                       </span>
                       <input
@@ -2024,14 +2042,14 @@ export default function POSBilling() {
                           setHistoryPeriod("custom");
                           setHistoryEndDate(e.target.value);
                         }}
-                        className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#192836] w-[115px]"
+                        className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#000000] w-[115px]"
                       />
                     </div>
                   </div>
 
                   <button
                     onClick={handleExportCSV}
-                    className="flex items-center gap-1.5 px-4 py-2 border-2 border-[#8C1D2F] bg-transparent text-[#8C1D2F] hover:bg-[#8C1D2F] hover:text-[#FCFCFA] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm"
+                    className="flex items-center gap-1.5 px-4 py-2 border-2 border-[#FF0000] bg-transparent text-[#FF0000] hover:bg-[#FF0000] hover:text-[#FFFFFF] rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-sm"
                   >
                     <Download className="w-3.5 h-3.5" />
                     Export CSV
@@ -2041,61 +2059,61 @@ export default function POSBilling() {
             </div>
 
             {orders.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-[#E8DEC8] rounded-xl bg-[#F8F5F0] py-12">
-                <p className="text-[#4C3D32] font-medium">
+              <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-black/10 rounded-xl bg-[#FFFFFF] py-12">
+                <p className="text-[#000000] font-medium">
                   No past transactions yet.
                 </p>
               </div>
             ) : (
               <>
                 {/* Search and Filters Bar */}
-                <div className="bg-white border-2 border-[#E8DEC8] rounded-xl p-4 mb-6 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+                <div className="bg-white border-2 border-black/10 rounded-xl p-4 mb-6 shadow-sm flex flex-wrap gap-4 items-center justify-between">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 w-full">
                     <div>
-                      <label className="block text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                      <label className="block text-[9px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                         Search Order ID
                       </label>
                       <div className="relative">
-                        <Search className="w-3.5 h-3.5 text-[#4C3D32] absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="w-3.5 h-3.5 text-[#000000] absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           placeholder="e.g. INV-..."
-                          className="w-full bg-[#FCFCFA]/30 border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg pl-8 pr-3 py-1.5 text-xs font-semibold text-[#32231A] focus:outline-none"
+                          className="w-full bg-[#FFFFFF]/30 border border-black/10 focus:border-[#FF0000] rounded-lg pl-8 pr-3 py-1.5 text-xs font-semibold text-[#000000] focus:outline-none"
                           value={orderSearchId}
                           onChange={(e) => setOrderSearchId(e.target.value)}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                      <label className="block text-[9px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                         Customer Name
                       </label>
                       <input
                         type="text"
                         placeholder="Search name..."
-                        className="w-full bg-[#FCFCFA]/30 border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#32231A] focus:outline-none"
+                        className="w-full bg-[#FFFFFF]/30 border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#000000] focus:outline-none"
                         value={orderSearchName}
                         onChange={(e) => setOrderSearchName(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                      <label className="block text-[9px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                         Customer Phone
                       </label>
                       <input
                         type="text"
                         placeholder="Search phone..."
-                        className="w-full bg-[#FCFCFA]/30 border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#32231A] focus:outline-none"
+                        className="w-full bg-[#FFFFFF]/30 border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#000000] focus:outline-none"
                         value={orderSearchPhone}
                         onChange={(e) => setOrderSearchPhone(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                      <label className="block text-[9px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                         Order Source
                       </label>
                       <select
-                        className="w-full bg-[#FCFCFA]/30 border border-[#E8DEC8] focus:border-[#8C1D2F] rounded-lg px-3 py-1.5 text-xs font-bold text-[#32231A] focus:outline-none cursor-pointer"
+                        className="w-full bg-[#FFFFFF]/30 border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-1.5 text-xs font-bold text-[#000000] focus:outline-none cursor-pointer"
                         value={orderFilterSource}
                         onChange={(e) => setOrderFilterSource(e.target.value)}
                       >
@@ -2112,8 +2130,8 @@ export default function POSBilling() {
 
                   if (filteredOrders.length === 0) {
                     return (
-                      <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-[#E8DEC8] rounded-xl bg-[#F8F5F0] py-12">
-                        <p className="text-[#4C3D32] font-semibold">
+                      <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-black/10 rounded-xl bg-[#FFFFFF] py-12">
+                        <p className="text-[#000000] font-semibold">
                           No transactions match your search filters.
                         </p>
                       </div>
@@ -2121,26 +2139,26 @@ export default function POSBilling() {
                   }
 
                   return (
-                    <div className="bg-[#FCFCFA] border-2 border-[#E8DEC8] rounded-xl shadow-sm overflow-x-auto">
+                    <div className="bg-[#FFFFFF] border-2 border-black/10 rounded-xl shadow-sm overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-[#F0EBE1] border-b border-[#E8DEC8]">
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest">
+                          <tr className="bg-[#FFFFFF] border-b border-black/10">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
                               Order ID
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
                               Customer Name
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
                               Mobile Number
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
                               Source
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
                               Total Due
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#4C3D32] uppercase tracking-widest text-right">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest text-right">
                               Status
                             </th>
                           </tr>
@@ -2149,15 +2167,15 @@ export default function POSBilling() {
                           {filteredOrders.map((order) => (
                             <tr
                               key={order.id}
-                              className="border-b border-[#E8DEC8]/50 hover:bg-[#F8F5F0] transition-colors"
+                              className="border-b border-transparent hover:bg-[#FFFFFF] transition-colors"
                             >
-                              <td className="p-4 text-xs font-semibold text-[#192836]">
+                              <td className="p-4 text-xs font-semibold text-[#000000]">
                                 {order.id}
                               </td>
-                              <td className="p-4 text-xs font-bold text-[#32231A]">
+                              <td className="p-4 text-xs font-bold text-[#000000]">
                                 {order.customerName}
                               </td>
-                              <td className="p-4 text-xs font-mono font-bold text-[#4C3D32]">
+                              <td className="p-4 text-xs font-mono font-bold text-[#000000]">
                                 {order.customerPhone || "-"}
                               </td>
                               <td className="p-4">
@@ -2167,7 +2185,7 @@ export default function POSBilling() {
                                   {order.source}
                                 </span>
                               </td>
-                              <td className="p-4 text-sm font-black text-[#8C1D2F]">
+                              <td className="p-4 text-sm font-black text-[#FF0000]">
                                 ₹{order.grandTotal.toLocaleString()}
                               </td>
                               <td className="p-4 text-right">
@@ -2177,7 +2195,7 @@ export default function POSBilling() {
                                   </span>
                                   <button
                                     onClick={() => setSelectedOrder(order)}
-                                    className="text-[10px] font-bold text-[#4C3D32] hover:text-[#8C1D2F] uppercase tracking-wider underline underline-offset-2"
+                                    className="text-[10px] font-bold text-[#000000] hover:text-[#FF0000] uppercase tracking-wider underline underline-offset-2"
                                   >
                                     Details
                                   </button>
@@ -2200,10 +2218,10 @@ export default function POSBilling() {
             {/* Header Panel */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
               <div>
-                <h2 className="text-[28px] font-black text-[#192836] tracking-tight">
+                <h2 className="text-[28px] font-black text-[#000000] tracking-tight">
                   POS Analytics
                 </h2>
-                <p className="text-xs text-[#4C3D32] font-semibold mt-1">
+                <p className="text-xs text-[#000000] font-semibold mt-1">
                   Real-time store & channel insights
                 </p>
               </div>
@@ -2212,8 +2230,8 @@ export default function POSBilling() {
               <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                 {analyticsSubTab !== "today" && (
                   <>
-                    <div className="flex flex-wrap items-center bg-[#F0EBE1] border border-[#E8DEC8] rounded-xl p-1 gap-1 max-w-full">
-                      <span className="text-[9px] font-bold text-[#4C3D32] uppercase tracking-wider px-2">
+                    <div className="flex flex-wrap items-center bg-[#FFFFFF] border border-black/10 rounded-xl p-1 gap-1 max-w-full">
+                      <span className="text-[9px] font-bold text-[#000000] uppercase tracking-wider px-2">
                         Period:
                       </span>
                       {(["all", "today", "week", "month", "year"] as const).map(
@@ -2239,8 +2257,8 @@ export default function POSBilling() {
                               }}
                               className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
                                 isActive
-                                  ? "bg-[#5B0E1B] text-[#FCFCFA] shadow-sm"
-                                  : "text-[#4C3D32] hover:bg-[#E8DEC8]/50"
+                                  ? "bg-[#990000] text-[#FFFFFF] shadow-sm"
+                                  : "text-[#000000] hover:bg-[#000000]/50"
                               }`}
                             >
                               {displayLabel}
@@ -2250,9 +2268,9 @@ export default function POSBilling() {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center border rounded-xl px-3 py-1.5 gap-2 shadow-sm bg-white border-[#E8DEC8] min-w-0">
+                    <div className="flex flex-wrap items-center border rounded-xl px-3 py-1.5 gap-2 shadow-sm bg-white border-black/10 min-w-0">
                       <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#000000]">
                           From:
                         </span>
                         <input
@@ -2262,11 +2280,11 @@ export default function POSBilling() {
                             setAnalyticsPeriod("custom");
                             setAnalyticsStartDate(e.target.value);
                           }}
-                          className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#192836] w-[115px]"
+                          className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#000000] w-[115px]"
                         />
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#000000]">
                           To:
                         </span>
                         <input
@@ -2276,7 +2294,7 @@ export default function POSBilling() {
                             setAnalyticsPeriod("custom");
                             setAnalyticsEndDate(e.target.value);
                           }}
-                          className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#192836] w-[115px]"
+                          className="text-xs font-bold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-[#000000] w-[115px]"
                         />
                       </div>
                     </div>
@@ -2286,7 +2304,7 @@ export default function POSBilling() {
             </div>
 
             {/* Sub Navigation Tabs */}
-            <div className="flex border-b border-[#E8DEC8]/60 mb-6 gap-6 overflow-x-auto scrollbar-none pb-0.5 w-full shrink-0">
+            <div className="flex border-b border-black/10 mb-6 gap-6 overflow-x-auto scrollbar-none pb-0.5 w-full shrink-0">
               {(["revenue", "today", "products", "coupons"] as const).map(
                 (tab) => {
                   const isActive = analyticsSubTab === tab;
@@ -2304,13 +2322,13 @@ export default function POSBilling() {
                       onClick={() => setAnalyticsSubTab(tab)}
                       className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all relative cursor-pointer shrink-0 ${
                         isActive
-                          ? "text-[#8C1D2F]"
-                          : "text-[#4C3D32] hover:text-[#32231A]"
+                          ? "text-[#FF0000]"
+                          : "text-[#000000] hover:text-[#000000]"
                       }`}
                     >
                       {displayLabel}
                       {isActive && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8C1D2F] rounded-full" />
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#FF0000] rounded-full" />
                       )}
                     </button>
                   );
@@ -2323,67 +2341,67 @@ export default function POSBilling() {
               <>
                 {/* Today's KPI Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Today's Revenue
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#10B981]/10 flex items-center justify-center">
                         <IndianRupee className="w-3 h-3 text-[#10B981] animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹{todayRevenue.toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Completed today
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Today's Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
                         <Trophy className="w-3 h-3 text-[#3B82F6] animate-swing" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {todayOrdersCount}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Completed today
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Today's Items Sold
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center">
                         <Package className="w-3 h-3 text-[#8B5CF6] animate-pop" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {todayItemsSold} pcs
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Quantity sold today
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Today's Avg Order Value
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#F97316]/10 flex items-center justify-center">
                         <Zap className="w-3 h-3 text-[#F97316] animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹
                       {Math.round(
                         todayOrdersCount > 0
@@ -2391,7 +2409,7 @@ export default function POSBilling() {
                           : 0,
                       ).toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Per invoice today
                     </div>
                   </div>
@@ -2402,19 +2420,19 @@ export default function POSBilling() {
                   {/* Left Side: Today's Order Source & Leaderboard */}
                   <div className="col-span-8 w-full flex flex-col gap-6">
                     {/* Today's Transactions Table */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm flex-1">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm flex-1">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                        <h3 className="font-bold text-[#192836] text-sm">
+                        <h3 className="font-bold text-[#000000] text-sm">
                           Today's Transactions
                         </h3>
 
                         {/* Contact Search Input */}
-                        <div className="flex items-center border border-[#E8DEC8] bg-[#FCFCFA] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
-                          <Search className="w-3.5 h-3.5 text-[#4C3D32]" />
+                        <div className="flex items-center border border-black/10 bg-[#FFFFFF] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
+                          <Search className="w-3.5 h-3.5 text-[#000000]" />
                           <input
                             type="text"
                             placeholder="Search contact/invoice..."
-                            className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#32231A] placeholder:text-[#4C3D32]/50 w-full sm:w-[170px]"
+                            className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#000000] placeholder:text-[#000000]/50 w-full sm:w-[170px]"
                             value={analyticsSearchPhone}
                             onChange={(e) =>
                               setAnalyticsSearchPhone(e.target.value)
@@ -2423,7 +2441,7 @@ export default function POSBilling() {
                         </div>
                       </div>
                       {todayOrders.length === 0 ? (
-                        <div className="text-center text-[#4C3D32] text-xs font-semibold py-12">
+                        <div className="text-center text-[#000000] text-xs font-semibold py-12">
                           {analyticsSearchPhone
                             ? "No matching transactions found."
                             : "No orders placed today."}
@@ -2432,20 +2450,20 @@ export default function POSBilling() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-left border-collapse">
                             <thead>
-                              <tr className="bg-[#F8F5F0] border-b border-[#E8DEC8]">
-                                <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                              <tr className="bg-[#FFFFFF] border-b border-black/10">
+                                <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                                   Invoice ID
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                                <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                                   Customer No
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                                <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                                   Source
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                                <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                                   Items
                                 </th>
-                                <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                                <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                                   Grand Total
                                 </th>
                               </tr>
@@ -2454,12 +2472,12 @@ export default function POSBilling() {
                               {todayOrders.map((order) => (
                                 <tr
                                   key={order.id}
-                                  className="border-b border-[#E8DEC8]/40 hover:bg-[#F8F5F0]/50 transition-colors"
+                                  className="border-b border-transparent hover:bg-[#FFFFFF]/50 transition-colors"
                                 >
-                                  <td className="p-3 text-xs font-semibold text-[#192836]">
+                                  <td className="p-3 text-xs font-semibold text-[#000000]">
                                     {order.id}
                                   </td>
-                                  <td className="p-3 text-xs font-mono font-bold text-[#32231A]">
+                                  <td className="p-3 text-xs font-mono font-bold text-[#000000]">
                                     {order.customerPhone || "-"}
                                   </td>
                                   <td className="p-3">
@@ -2469,14 +2487,14 @@ export default function POSBilling() {
                                       {order.source}
                                     </span>
                                   </td>
-                                  <td className="p-3 text-xs font-semibold text-[#4C3D32] text-right">
+                                  <td className="p-3 text-xs font-semibold text-[#000000] text-right">
                                     {order.items.reduce(
                                       (sum, i) => sum + i.qty,
                                       0,
                                     )}{" "}
                                     pcs
                                   </td>
-                                  <td className="p-3 text-xs font-black text-[#8C1D2F] text-right">
+                                  <td className="p-3 text-xs font-black text-[#FF0000] text-right">
                                     ₹{order.grandTotal.toLocaleString()}
                                   </td>
                                 </tr>
@@ -2491,12 +2509,12 @@ export default function POSBilling() {
                   {/* Right Side: Channel Split & Top items */}
                   <div className="col-span-4 w-full flex flex-col gap-6">
                     {/* Today's Channel Split Card */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm">
-                      <h3 className="font-bold text-[#192836] mb-4 text-sm">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm">
+                      <h3 className="font-bold text-[#000000] mb-4 text-sm">
                         Today's Channel Split
                       </h3>
                       {todayOrdersCount === 0 ? (
-                        <div className="text-center text-[#4C3D32] text-xs font-semibold py-6">
+                        <div className="text-center text-[#000000] text-xs font-semibold py-6">
                           No sales today.
                         </div>
                       ) : (
@@ -2505,7 +2523,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider w-14">
                               Offline
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#E11D48] rounded-full transition-all duration-700"
                                 style={{
@@ -2513,7 +2531,7 @@ export default function POSBilling() {
                                 }}
                               />
                             </div>
-                            <span className="text-[11px] font-black text-[#192836] w-12 text-right">
+                            <span className="text-[11px] font-black text-[#000000] w-12 text-right">
                               ₹{todayOfflineRevenue.toLocaleString()}
                             </span>
                           </div>
@@ -2521,7 +2539,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#00A86B] uppercase tracking-wider w-14">
                               Online
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#00A86B] rounded-full transition-all duration-700"
                                 style={{
@@ -2529,7 +2547,7 @@ export default function POSBilling() {
                                 }}
                               />
                             </div>
-                            <span className="text-[11px] font-black text-[#192836] w-12 text-right">
+                            <span className="text-[11px] font-black text-[#000000] w-12 text-right">
                               ₹{todayOnlineRevenue.toLocaleString()}
                             </span>
                           </div>
@@ -2538,12 +2556,12 @@ export default function POSBilling() {
                     </div>
 
                     {/* Today's Top Products Sold Card */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm flex-1">
-                      <h3 className="font-bold text-[#192836] text-sm mb-4">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm flex-1">
+                      <h3 className="font-bold text-[#000000] text-sm mb-4">
                         Today's Top Items
                       </h3>
                       {todayTopItems.length === 0 ? (
-                        <div className="text-center text-[#4C3D32] text-xs font-semibold py-6">
+                        <div className="text-center text-[#000000] text-xs font-semibold py-6">
                           No items sold today.
                         </div>
                       ) : (
@@ -2553,28 +2571,28 @@ export default function POSBilling() {
                               key={item.name}
                               className="flex items-center gap-3"
                             >
-                              <span className="text-[11px] font-black text-[#4C3D32] w-4">
+                              <span className="text-[11px] font-black text-[#000000] w-4">
                                 {idx + 1}
                               </span>
                               <div className="flex-1">
                                 <div className="flex justify-between items-center mb-1">
-                                  <span className="text-xs font-bold text-[#192836]">
+                                  <span className="text-xs font-bold text-[#000000]">
                                     {item.name}
                                   </span>
-                                  <span className="text-xs font-black text-[#8C1D2F]">
+                                  <span className="text-xs font-black text-[#FF0000]">
                                     ₹{item.revenue.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="h-1.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-[#000000] rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-[#8C1D2F] rounded-full transition-all duration-700"
+                                    className="h-full bg-[#FF0000] rounded-full transition-all duration-700"
                                     style={{
                                       width: `${(item.revenue / todayTopItems[0].revenue) * 100}%`,
                                     }}
                                   />
                                 </div>
                               </div>
-                              <span className="text-[10px] text-[#4C3D32] font-semibold w-10 text-right">
+                              <span className="text-[10px] text-[#000000] font-semibold w-10 text-right">
                                 {item.qty} pcs
                               </span>
                             </div>
@@ -2592,70 +2610,70 @@ export default function POSBilling() {
                 {/* Top 5x2 KPI Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                   {/* Row 1 */}
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Total Revenue
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#10B981]/10 flex items-center justify-center">
                         <IndianRupee className="w-3 h-3 text-[#10B981] animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹{totalRevenueAmount.toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       POS + manual combined
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Completed Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#10B981]/10 flex items-center justify-center">
                         <Trophy className="w-3 h-3 text-[#10B981] animate-swing" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {totalOrdersCount}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       POS + manual bills
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Offline Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#06B6D4]/10 flex items-center justify-center">
                         <IndianRupee className="w-3 h-3 text-[#06B6D4] animate-bounce" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹{offlineRevenue.toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Walk-in POS sales
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Online Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
                         <IndianRupee className="w-3 h-3 text-[#6366F1] animate-float" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹{onlineRevenue.toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Online POS sales
                     </div>
                   </div>
@@ -2663,77 +2681,77 @@ export default function POSBilling() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
                   {/* Row 2 */}
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Total Offline Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#E11D48]/10 flex items-center justify-center">
                         <ShoppingBag className="w-3 h-3 text-[#E11D48] animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {offlineOrders}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Walk-in POS orders
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Total Online Bills
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#6366F1]/10 flex items-center justify-center">
                         <Globe className="w-3 h-3 text-[#6366F1] animate-float" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {onlineOrders}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Online channel orders
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Total Items Sold
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center">
                         <Package className="w-3 h-3 text-[#8B5CF6] animate-pop" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       {totalItemsSold}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       From completed bills
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Avg Order Value
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#F97316]/10 flex items-center justify-center">
                         <Zap className="w-3 h-3 text-[#F97316] animate-pulse" />
                       </div>
                     </div>
-                    <div className="text-xl font-black text-[#192836] mb-1">
+                    <div className="text-xl font-black text-[#000000] mb-1">
                       ₹{Math.round(avgOrderValue).toLocaleString()}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Per completed order
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E8DEC8] rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+                  <div className="bg-white border border-black/10 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Top Product
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#EC4899]/10 flex items-center justify-center">
@@ -2741,12 +2759,12 @@ export default function POSBilling() {
                       </div>
                     </div>
                     <div
-                      className="text-xl font-black text-[#192836] mb-1 truncate"
+                      className="text-xl font-black text-[#000000] mb-1 truncate"
                       title={topProduct}
                     >
                       {topProduct}
                     </div>
-                    <div className="text-[9px] text-[#4C3D32] font-semibold">
+                    <div className="text-[9px] text-[#000000] font-semibold">
                       Most sold item
                     </div>
                   </div>
@@ -2757,18 +2775,18 @@ export default function POSBilling() {
                   {/* Left Chart Column */}
                   <div className="col-span-8 w-full flex flex-col gap-6">
                     {/* Monthly Revenue Trend Chart */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col min-h-[300px]">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col min-h-[300px]">
                       <div className="flex justify-between items-center mb-6">
                         <div>
-                          <h3 className="font-bold text-[#192836] text-sm mb-2 flex items-center">
-                            Revenue Trend This Year <span className="text-[#8C1D2F] font-black ml-1.5">{now.getFullYear()}</span>
+                          <h3 className="font-bold text-[#000000] text-sm mb-2 flex items-center">
+                            Revenue Trend This Year <span className="text-[#FF0000] font-black ml-1.5">{now.getFullYear()}</span>
                           </h3>
                           <div className="flex items-center gap-3">
-                            <span className="text-xl font-black text-[#192836]">
+                            <span className="text-xl font-black text-[#000000]">
                               ₹{totalYearRevenue.toLocaleString()}
                             </span>
                             {avgMonthRevenue > 0 && (
-                              <span className="bg-[#F0EBE1] border border-[#E8DEC8] text-[#8C1D2F] px-2 py-0.5 rounded text-[10px] font-bold">
+                              <span className="bg-[#FFFFFF] border border-black/10 text-[#FF0000] px-2 py-0.5 rounded text-[10px] font-bold">
                                 Avg ₹
                                 {Math.round(avgMonthRevenue).toLocaleString()}
                                 /mo
@@ -2779,7 +2797,7 @@ export default function POSBilling() {
                       </div>
 
                       {orders.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center text-[#4C3D32] text-sm font-semibold">
+                        <div className="flex-1 flex items-center justify-center text-[#000000] text-sm font-semibold">
                           Process orders to see yearly revenue trend.
                         </div>
                       ) : (
@@ -2792,7 +2810,7 @@ export default function POSBilling() {
                                 tabIndex={0}
                               >
                                 {/* Monthly sales text on top for mobile/visibility */}
-                                <span className="text-[8px] font-black text-[#8C1D2F] h-3 flex items-end">
+                                <span className="text-[8px] font-black text-[#FF0000] h-3 flex items-end">
                                   {monthRevenue[i] > 0
                                     ? monthRevenue[i] >= 1000
                                       ? `₹${(monthRevenue[i] / 1000).toFixed(1)}k`
@@ -2801,20 +2819,20 @@ export default function POSBilling() {
                                 </span>
 
                                 {/* Tooltip */}
-                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#192836] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                                  <div className="text-[9px] text-[#DBCABF] font-semibold mb-0.5">
+                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#000000] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
+                                  <div className="text-[9px] text-[#000000] font-semibold mb-0.5">
                                     {monthNames[i]}
                                   </div>
                                   ₹{(monthRevenue[i] || 0).toLocaleString()}
-                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#192836]"></div>
+                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#000000]"></div>
                                 </div>
                                 <div
-                                  className="w-full max-w-[24px] bg-[#8C1D2F] rounded-t-sm transition-all duration-1000 group-hover/bar:bg-[#8A4040] cursor-pointer min-h-[4px]"
+                                  className="w-full max-w-[24px] bg-[#FF0000] rounded-t-sm transition-all duration-1000 group-hover/bar:bg-[#EF4444] cursor-pointer min-h-[4px]"
                                   style={{
                                     height: `${Math.max(4, (monthRevenue[i] / maxMonthRevenue) * 100)}px`,
                                   }}
                                 />
-                                <span className="text-[10px] font-bold text-[#4C3D32] uppercase">
+                                <span className="text-[10px] font-bold text-[#000000] uppercase">
                                   {month}
                                 </span>
                               </div>
@@ -2825,13 +2843,13 @@ export default function POSBilling() {
                     </div>
 
                     {/* Weekly Revenue Bar Chart */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col min-h-[250px]">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col min-h-[250px]">
                       <div className="flex justify-between items-center mb-6">
                         <div>
-                          <h3 className="font-bold text-[#192836] text-sm flex items-center">
-                            Revenue This Week <span className="text-[#8C1D2F] font-black ml-1.5">(Week {currentWeekNumber} of {now.getFullYear()})</span>
+                          <h3 className="font-bold text-[#000000] text-sm flex items-center">
+                            Revenue This Week <span className="text-[#FF0000] font-black ml-1.5">(Week {currentWeekNumber} of {now.getFullYear()})</span>
                           </h3>
-                          <p className="text-[10px] text-[#4C3D32] font-semibold mt-1">
+                          <p className="text-[10px] text-[#000000] font-semibold mt-1">
                             ₹
                             {weekRevenue
                               .reduce((a, b) => a + b, 0)
@@ -2842,7 +2860,7 @@ export default function POSBilling() {
                       </div>
 
                       {orders.length === 0 ? (
-                        <div className="flex-1 flex items-center justify-center text-[#4C3D32] text-sm font-semibold">
+                        <div className="flex-1 flex items-center justify-center text-[#000000] text-sm font-semibold">
                           Process orders to see weekly revenue.
                         </div>
                       ) : (
@@ -2853,30 +2871,30 @@ export default function POSBilling() {
                               className="flex flex-col items-center gap-3 w-full group/bar relative outline-none"
                               tabIndex={0}
                             >
-                              <span className="text-[9px] font-black text-[#8C1D2F]">
+                              <span className="text-[9px] font-black text-[#FF0000]">
                                 {weekRevenue[i] > 0
                                   ? `₹${weekRevenue[i] >= 1000 ? (weekRevenue[i] / 1000).toFixed(1) + "k" : weekRevenue[i]}`
                                   : ""}
                               </span>
 
                               {/* Tooltip for exact weekly revenue */}
-                              <div className="absolute bottom-[52px] mb-2 left-1/2 -translate-x-1/2 bg-[#192836] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
-                                <div className="text-[9px] text-[#DBCABF] font-semibold mb-0.5">
+                              <div className="absolute bottom-[52px] mb-2 left-1/2 -translate-x-1/2 bg-[#000000] text-white text-[10px] font-bold px-2 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 group-focus/bar:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none z-10 shadow-lg">
+                                <div className="text-[9px] text-[#000000] font-semibold mb-0.5">
                                   {dayNames[i]}
                                 </div>
                                 ₹{(weekRevenue[i] || 0).toLocaleString()}
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#192836]"></div>
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#000000]"></div>
                               </div>
 
-                              <div className="w-full max-w-[20px] h-32 bg-[#E8DEC8] rounded-full relative overflow-hidden cursor-pointer">
+                              <div className="w-full max-w-[20px] h-32 bg-[#000000] rounded-full relative overflow-hidden cursor-pointer">
                                 <div
-                                  className="absolute bottom-0 w-full bg-[#8C1D2F] rounded-full transition-all duration-1000 group-hover/bar:bg-[#8A4040]"
+                                  className="absolute bottom-0 w-full bg-[#FF0000] rounded-full transition-all duration-1000 group-hover/bar:bg-[#EF4444]"
                                   style={{
                                     height: `${(weekRevenue[i] / maxWeekRevenue) * 100}%`,
                                   }}
                                 />
                               </div>
-                              <span className="text-[10px] font-bold text-[#4C3D32] uppercase">
+                              <span className="text-[10px] font-bold text-[#000000] uppercase">
                                 {day}
                               </span>
                             </div>
@@ -2889,12 +2907,12 @@ export default function POSBilling() {
                   {/* Right Column (Breakdowns) */}
                   <div className="col-span-4 w-full flex flex-col gap-6">
                     {/* Order Source Breakdown */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
-                      <h3 className="font-bold text-[#192836] mb-4 text-sm">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
+                      <h3 className="font-bold text-[#000000] mb-4 text-sm">
                         Order Source
                       </h3>
                       {totalOrdersCount === 0 ? (
-                        <div className="text-center text-[#4C3D32] text-sm font-semibold py-6">
+                        <div className="text-center text-[#000000] text-sm font-semibold py-6">
                           No orders yet.
                         </div>
                       ) : (
@@ -2903,7 +2921,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#E11D48] uppercase tracking-wider w-14">
                               Offline
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#E11D48] rounded-full transition-all duration-700"
                                 style={{
@@ -2911,7 +2929,7 @@ export default function POSBilling() {
                                 }}
                               />
                             </div>
-                            <span className="text-[11px] font-black text-[#192836] w-8 text-right">
+                            <span className="text-[11px] font-black text-[#000000] w-8 text-right">
                               {offlineOrders}
                             </span>
                           </div>
@@ -2919,7 +2937,7 @@ export default function POSBilling() {
                             <span className="text-[10px] font-bold text-[#00A86B] uppercase tracking-wider w-14">
                               Online
                             </span>
-                            <div className="flex-1 h-2.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden">
                               <div
                                 className="h-full bg-[#00A86B] rounded-full transition-all duration-700"
                                 style={{
@@ -2927,7 +2945,7 @@ export default function POSBilling() {
                                 }}
                               />
                             </div>
-                            <span className="text-[11px] font-black text-[#192836] w-8 text-right">
+                            <span className="text-[11px] font-black text-[#000000] w-8 text-right">
                               {onlineOrders}
                             </span>
                           </div>
@@ -2936,12 +2954,12 @@ export default function POSBilling() {
                     </div>
 
                     {/* Top Items by Revenue */}
-                    <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex-1">
-                      <h3 className="font-bold text-[#192836] text-sm mb-4">
+                    <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm hover:shadow-md transition-all flex-1">
+                      <h3 className="font-bold text-[#000000] text-sm mb-4">
                         Top Items by Revenue
                       </h3>
                       {topItems.length === 0 ? (
-                        <div className="text-center text-[#4C3D32] text-sm font-semibold py-6">
+                        <div className="text-center text-[#000000] text-sm font-semibold py-6">
                           No items sold yet.
                         </div>
                       ) : (
@@ -2951,28 +2969,28 @@ export default function POSBilling() {
                               key={item.name}
                               className="flex items-center gap-3"
                             >
-                              <span className="text-[11px] font-black text-[#4C3D32] w-4">
+                              <span className="text-[11px] font-black text-[#000000] w-4">
                                 {idx + 1}
                               </span>
                               <div className="flex-1">
                                 <div className="flex justify-between items-center mb-1.5">
-                                  <span className="text-xs font-bold text-[#192836]">
+                                  <span className="text-xs font-bold text-[#000000]">
                                     {item.name}
                                   </span>
-                                  <span className="text-xs font-black text-[#8C1D2F]">
+                                  <span className="text-xs font-black text-[#FF0000]">
                                     ₹{item.revenue.toLocaleString()}
                                   </span>
                                 </div>
-                                <div className="h-1.5 bg-[#E8DEC8] rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-[#000000] rounded-full overflow-hidden">
                                   <div
-                                    className="h-full bg-[#8C1D2F] rounded-full transition-all duration-700"
+                                    className="h-full bg-[#FF0000] rounded-full transition-all duration-700"
                                     style={{
                                       width: `${(item.revenue / topItems[0].revenue) * 100}%`,
                                     }}
                                   />
                                 </div>
                               </div>
-                              <span className="text-[10px] text-[#4C3D32] font-semibold w-10 text-right">
+                              <span className="text-[10px] text-[#000000] font-semibold w-10 text-right">
                                 {item.qty} pcs
                               </span>
                             </div>
@@ -2986,19 +3004,19 @@ export default function POSBilling() {
             )}
 
             {analyticsSubTab === "products" && (
-              <div className="bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm">
+              <div className="bg-white border border-black/10 rounded-xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                  <h3 className="font-bold text-[#192836] text-sm">
+                  <h3 className="font-bold text-[#000000] text-sm">
                     Product Sales Leaderboard
                   </h3>
 
                   {/* Product Search Input */}
-                  <div className="flex items-center border border-[#E8DEC8] bg-[#FCFCFA] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
-                    <Search className="w-3.5 h-3.5 text-[#4C3D32]" />
+                  <div className="flex items-center border border-black/10 bg-[#FFFFFF] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
+                    <Search className="w-3.5 h-3.5 text-[#000000]" />
                     <input
                       type="text"
                       placeholder="Search product..."
-                      className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#32231A] placeholder:text-[#4C3D32]/50 w-full sm:w-[180px]"
+                      className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#000000] placeholder:text-[#000000]/50 w-full sm:w-[180px]"
                       value={productSearchQuery}
                       onChange={(e) => setProductSearchQuery(e.target.value)}
                     />
@@ -3006,27 +3024,27 @@ export default function POSBilling() {
                 </div>
 
                 {Object.keys(itemSales).length === 0 ? (
-                  <div className="text-center text-[#4C3D32] text-sm font-semibold py-12">
+                  <div className="text-center text-[#000000] text-sm font-semibold py-12">
                     No products sold in this period.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-[#F8F5F0] border-b border-[#E8DEC8]">
-                          <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                        <tr className="bg-[#FFFFFF] border-b border-black/10">
+                          <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                             Rank
                           </th>
-                          <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                          <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                             Product Name
                           </th>
-                          <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                          <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                             Qty Sold
                           </th>
-                          <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                          <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                             Revenue
                           </th>
-                          <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                          <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                             Market Share
                           </th>
                         </tr>
@@ -3040,7 +3058,7 @@ export default function POSBilling() {
                           <tr>
                             <td
                               colSpan={5}
-                              className="text-center py-12 text-sm font-semibold text-[#4C3D32]"
+                              className="text-center py-12 text-sm font-semibold text-[#000000]"
                             >
                               No matching products found.
                             </td>
@@ -3061,29 +3079,29 @@ export default function POSBilling() {
                               return (
                                 <tr
                                   key={item.name}
-                                  className="border-b border-[#E8DEC8]/40 hover:bg-[#F8F5F0]/50 transition-colors"
+                                  className="border-b border-transparent hover:bg-[#FFFFFF]/50 transition-colors"
                                 >
-                                  <td className="p-3 text-xs font-black text-[#4C3D32]">
+                                  <td className="p-3 text-xs font-black text-[#000000]">
                                     {idx + 1}
                                   </td>
-                                  <td className="p-3 text-xs font-bold text-[#192836]">
+                                  <td className="p-3 text-xs font-bold text-[#000000]">
                                     {item.name}
                                   </td>
-                                  <td className="p-3 text-xs font-bold text-[#32231A] text-right">
+                                  <td className="p-3 text-xs font-bold text-[#000000] text-right">
                                     {item.qty} pcs
                                   </td>
-                                  <td className="p-3 text-xs font-black text-[#8C1D2F] text-right">
+                                  <td className="p-3 text-xs font-black text-[#FF0000] text-right">
                                     ₹{item.revenue.toLocaleString()}
                                   </td>
                                   <td className="p-3 w-1/4">
                                     <div className="flex items-center gap-3">
-                                      <div className="flex-1 h-2 bg-[#E8DEC8] rounded-full overflow-hidden">
+                                      <div className="flex-1 h-2 bg-[#000000] rounded-full overflow-hidden">
                                         <div
-                                          className="h-full bg-[#8C1D2F] rounded-full"
+                                          className="h-full bg-[#FF0000] rounded-full"
                                           style={{ width: `${share}%` }}
                                         />
                                       </div>
-                                      <span className="text-[10px] font-bold text-[#4C3D32] w-8">
+                                      <span className="text-[10px] font-bold text-[#000000] w-8">
                                         {share.toFixed(1)}%
                                       </span>
                                     </div>
@@ -3101,19 +3119,19 @@ export default function POSBilling() {
 
             {analyticsSubTab === "coupons" && (
               <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
-                <div className="col-span-1 w-full bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm flex flex-col gap-6">
-                  <h3 className="font-bold text-[#192836] text-sm">
+                <div className="col-span-1 w-full bg-white border border-black/10 rounded-xl p-6 shadow-sm flex flex-col gap-6">
+                  <h3 className="font-bold text-[#000000] text-sm">
                     Discount Summary
                   </h3>
 
-                  <div className="p-4 bg-[#F8F5F0] border border-[#E8DEC8] rounded-lg">
+                  <div className="p-4 bg-[#FFFFFF] border border-black/10 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Total Discounts Given
                       </span>
-                      <Percent className="w-4 h-4 text-[#8C1D2F]" />
+                      <Percent className="w-4 h-4 text-[#FF0000]" />
                     </div>
-                    <span className="text-2xl font-black text-[#8C1D2F]">
+                    <span className="text-2xl font-black text-[#FF0000]">
                       ₹
                       {analyticsFilteredOrders
                         .reduce((acc, o) => acc + o.discount, 0)
@@ -3121,14 +3139,14 @@ export default function POSBilling() {
                     </span>
                   </div>
 
-                  <div className="p-4 bg-[#F8F5F0] border border-[#E8DEC8] rounded-lg">
+                  <div className="p-4 bg-[#FFFFFF] border border-black/10 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Discounted Orders
                       </span>
                       <Calendar className="w-4 h-4 text-[#3B82F6]" />
                     </div>
-                    <span className="text-2xl font-black text-[#192836]">
+                    <span className="text-2xl font-black text-[#000000]">
                       {
                         analyticsFilteredOrders.filter((o) => o.discount > 0)
                           .length
@@ -3136,14 +3154,14 @@ export default function POSBilling() {
                     </span>
                   </div>
 
-                  <div className="p-4 bg-[#F8F5F0] border border-[#E8DEC8] rounded-lg">
+                  <div className="p-4 bg-[#FFFFFF] border border-black/10 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#4C3D32]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#000000]">
                         Avg Discount Per Order
                       </span>
                       <IndianRupee className="w-4 h-4 text-[#10B981]" />
                     </div>
-                    <span className="text-2xl font-black text-[#192836]">
+                    <span className="text-2xl font-black text-[#000000]">
                       ₹
                       {Math.round(
                         analyticsFilteredOrders.filter((o) => o.discount > 0)
@@ -3161,19 +3179,19 @@ export default function POSBilling() {
                   </div>
                 </div>
 
-                <div className="col-span-2 w-full bg-white border border-[#E8DEC8] rounded-xl p-6 shadow-sm">
+                <div className="col-span-2 w-full bg-white border border-black/10 rounded-xl p-6 shadow-sm">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                    <h3 className="font-bold text-[#192836] text-sm">
+                    <h3 className="font-bold text-[#000000] text-sm">
                       Promo Campaign Performance
                     </h3>
 
                     {/* Coupons Search Input */}
-                    <div className="flex items-center border border-[#E8DEC8] bg-[#FCFCFA] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
-                      <Search className="w-3.5 h-3.5 text-[#4C3D32]" />
+                    <div className="flex items-center border border-black/10 bg-[#FFFFFF] rounded-lg px-3 py-1.5 gap-2 shadow-xs w-full sm:w-auto animate-in fade-in duration-200">
+                      <Search className="w-3.5 h-3.5 text-[#000000]" />
                       <input
                         type="text"
                         placeholder="Search code/mobile/amount..."
-                        className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#32231A] placeholder:text-[#4C3D32]/50 w-full sm:w-[220px]"
+                        className="text-xs font-semibold bg-transparent border-none outline-none focus:ring-0 text-[#000000] placeholder:text-[#000000]/50 w-full sm:w-[220px]"
                         value={couponSearchQuery}
                         onChange={(e) => setCouponSearchQuery(e.target.value)}
                       />
@@ -3182,24 +3200,24 @@ export default function POSBilling() {
 
                   {analyticsFilteredOrders.filter((o) => o.discount > 0).length ===
                   0 ? (
-                    <div className="text-center text-[#4C3D32] text-sm font-semibold py-12">
+                    <div className="text-center text-[#000000] text-sm font-semibold py-12">
                       No promotional discounts given in this period.
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-[#F8F5F0] border-b border-[#E8DEC8]">
-                            <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                          <tr className="bg-[#FFFFFF] border-b border-black/10">
+                            <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                               Transaction ID
                             </th>
-                            <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider">
+                            <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider">
                               Customer Mobile
                             </th>
-                            <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                            <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                               Order Total
                             </th>
-                            <th className="p-3 text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider text-right">
+                            <th className="p-3 text-[10px] font-bold text-[#000000] uppercase tracking-wider text-right">
                               Discount Applied
                             </th>
                           </tr>
@@ -3221,7 +3239,7 @@ export default function POSBilling() {
                             <tr>
                               <td
                                 colSpan={4}
-                                className="text-center py-12 text-sm font-semibold text-[#4C3D32]"
+                                className="text-center py-12 text-sm font-semibold text-[#000000]"
                               >
                                 No matching coupon performance records found.
                               </td>
@@ -3243,15 +3261,15 @@ export default function POSBilling() {
                               .map((order) => (
                                 <tr
                                   key={order.id}
-                                  className="border-b border-[#E8DEC8]/40 hover:bg-[#F8F5F0]/50 transition-colors"
+                                  className="border-b border-transparent hover:bg-[#FFFFFF]/50 transition-colors"
                                 >
-                                  <td className="p-3 text-xs font-semibold text-[#192836]">
+                                  <td className="p-3 text-xs font-semibold text-[#000000]">
                                     {order.id}
                                   </td>
-                                  <td className="p-3 text-xs font-mono font-bold text-[#32231A]">
+                                  <td className="p-3 text-xs font-mono font-bold text-[#000000]">
                                     {order.customerPhone || "-"}
                                   </td>
-                                  <td className="p-3 text-xs font-bold text-right text-[#4C3D32]">
+                                  <td className="p-3 text-xs font-bold text-right text-[#000000]">
                                     ₹{order.grandTotal.toLocaleString()}
                                   </td>
                                   <td className="p-3 text-xs font-black text-[#E11D48] text-right">
@@ -3273,22 +3291,22 @@ export default function POSBilling() {
         {/* Order Details Modal */}
         {selectedOrder && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-[#FCFCFA] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-[#FFFFFF] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
               {/* Modal Header */}
-              <div className="p-6 border-b border-[#E8DEC8] flex justify-between items-center bg-[#F8F5F0]">
+              <div className="p-6 border-b border-black/10 flex justify-between items-center bg-[#FFFFFF]">
                 <div>
-                  <h3 className="text-xl font-bold text-[#192836]">
+                  <h3 className="text-xl font-bold text-[#000000]">
                     Order Details
                   </h3>
-                  <p className="text-sm text-[#4C3D32] font-medium mt-1">
+                  <p className="text-sm text-[#000000] font-medium mt-1">
                     {selectedOrder.id}
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedOrder(null)}
-                  className="p-2 hover:bg-[#E8DEC8] rounded-full transition-colors"
+                  className="p-2 hover:bg-[#000000] rounded-full transition-colors"
                 >
-                  <X className="w-5 h-5 text-[#4C3D32]" />
+                  <X className="w-5 h-5 text-[#000000]" />
                 </button>
               </div>
 
@@ -3296,40 +3314,40 @@ export default function POSBilling() {
               <div className="p-6 overflow-y-auto">
                 <div className="grid grid-cols-2 gap-6 mb-8">
                   <div>
-                    <div className="text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                    <div className="text-[10px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                       Customer Name
                     </div>
-                    <div className="text-sm font-semibold text-[#192836]">
+                    <div className="text-sm font-semibold text-[#000000]">
                       {selectedOrder.customerName}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                    <div className="text-[10px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                       Contact Number
                     </div>
-                    <div className="text-sm font-semibold text-[#192836]">
+                    <div className="text-sm font-semibold text-[#000000]">
                       {selectedOrder.customerPhone || "N/A"}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                    <div className="text-[10px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                       Order Source
                     </div>
-                    <div className="text-sm font-semibold text-[#192836]">
+                    <div className="text-sm font-semibold text-[#000000]">
                       {selectedOrder.source}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-[#4C3D32] uppercase tracking-wider mb-1">
+                    <div className="text-[10px] font-bold text-[#000000] uppercase tracking-wider mb-1">
                       Date & Time
                     </div>
-                    <div className="text-sm font-semibold text-[#192836]">
+                    <div className="text-sm font-semibold text-[#000000]">
                       {new Date(selectedOrder.date).toLocaleString()}
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-4 text-[11px] font-bold text-[#4C3D32] uppercase tracking-[0.1em] border-b border-[#E8DEC8] pb-2">
+                <div className="mb-4 text-[11px] font-bold text-[#000000] uppercase tracking-[0.1em] border-b border-black/10 pb-2">
                   Order Items
                 </div>
                 <div className="space-y-3 mb-8">
@@ -3339,20 +3357,20 @@ export default function POSBilling() {
                       className="flex justify-between items-center"
                     >
                       <div>
-                        <div className="text-sm font-bold text-[#192836]">
+                        <div className="text-sm font-bold text-[#000000]">
                           {item.name}
                         </div>
                         {item.desc && (
-                          <div className="text-[10px] text-[#4C3D32] font-medium">
+                          <div className="text-[10px] text-[#000000] font-medium">
                             {item.desc}
                           </div>
                         )}
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold text-[#192836]">
+                        <div className="text-sm font-bold text-[#000000]">
                           ₹{(item.price * item.qty).toLocaleString()}
                         </div>
-                        <div className="text-[10px] text-[#4C3D32] font-medium">
+                        <div className="text-[10px] text-[#000000] font-medium">
                           {item.qty} x ₹{item.price.toLocaleString()}
                         </div>
                       </div>
@@ -3360,18 +3378,18 @@ export default function POSBilling() {
                   ))}
                 </div>
 
-                <div className="border-t border-[#E8DEC8] pt-4 space-y-2">
+                <div className="border-t border-black/10 pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-[#4C3D32] font-semibold">
+                    <span className="text-[#000000] font-semibold">
                       Subtotal
                     </span>
-                    <span className="text-[#192836] font-bold">
+                    <span className="text-[#000000] font-bold">
                       ₹{selectedOrder.subtotal.toLocaleString()}
                     </span>
                   </div>
                   {selectedOrder.discount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-[#4C3D32] font-semibold">
+                      <span className="text-[#000000] font-semibold">
                         Discount
                       </span>
                       <span className="text-[#E11D48] font-bold">
@@ -3381,19 +3399,19 @@ export default function POSBilling() {
                   )}
                   {selectedOrder.deliveryFee > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-[#4C3D32] font-semibold">
+                      <span className="text-[#000000] font-semibold">
                         Delivery Fee
                       </span>
-                      <span className="text-[#192836] font-bold">
+                      <span className="text-[#000000] font-bold">
                         ₹{selectedOrder.deliveryFee.toLocaleString()}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg pt-2 mt-2 border-t border-[#E8DEC8]/50">
-                    <span className="text-[#192836] font-black uppercase tracking-tight">
+                  <div className="flex justify-between text-lg pt-2 mt-2 border-t border-transparent">
+                    <span className="text-[#000000] font-black uppercase tracking-tight">
                       Total{" "}
                     </span>
-                    <span className="text-[#8C1D2F] font-black">
+                    <span className="text-[#FF0000] font-black">
                       ₹{selectedOrder.grandTotal.toLocaleString()}
                     </span>
                   </div>
@@ -3404,9 +3422,9 @@ export default function POSBilling() {
         )}
 
         {/* Classy Footer */}
-        <footer className="mt-auto pt-10 pb-2 border-t border-[#E8DEC8]/60 flex flex-col md:flex-row justify-between items-center text-[10px] text-[#4C3D32] font-semibold uppercase tracking-wider gap-4">
-          <div className="text-[#4C3D32]">
-            © 2026 All Rights Reserved. NaNi Mens Clothing.
+        <footer className="mt-auto pt-10 pb-2 border-t border-black/10 flex flex-col md:flex-row justify-between items-center text-[10px] text-[#000000] font-semibold uppercase tracking-wider gap-4">
+          <div className="text-[#000000]">
+            © 2026 All Rights Reserved. UPDATE MENS WEAR.
           </div>
           <div>
             Powered By{" "}
@@ -3414,14 +3432,14 @@ export default function POSBilling() {
               href="https://www.cenexasystems.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#8C1D2F] hover:underline font-bold transition-all"
+              className="text-[#FF0000] hover:underline font-bold transition-all"
             >
               Cenexa Systems
             </a>{" "}
             @2026
           </div>
-          <div className="italic text-[#4C3D32] font-bold tracking-[0.15em] flex items-center gap-1.5">
-            <span className="w-1 h-1 bg-[#8C1D2F] rounded-full"></span>
+          <div className="italic text-[#4B5563] font-bold tracking-[0.15em] flex items-center gap-1.5">
+            <span className="w-1 h-1 bg-[#DC2626] rounded-full"></span>
             Tailored. Timeless. Crafted.
           </div>
         </footer>

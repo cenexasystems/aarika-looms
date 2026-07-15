@@ -11,7 +11,7 @@ export default function Home() {
           </div>
           <div>
             <span className="text-sm font-black text-[#192836] tracking-wider uppercase block">
-              NaNi Men's Clothing
+              UPDATE Men's Wear
             </span>
             <span className="text-[9px] text-[#8C1D2F] font-bold tracking-widest block uppercase -mt-0.5">
               Premium Tailoring & Menswear
