@@ -444,6 +444,7 @@ export default function POSBilling() {
   const [newCatDesc, setNewCatDesc] = useState("");
   const [newCatPrice, setNewCatPrice] = useState<number | "">("");
   const [editCatalogItemId, setEditCatalogItemId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [activeCatalogRowId, setActiveCatalogRowId] = useState<string | null>(
     null,
@@ -652,7 +653,10 @@ export default function POSBilling() {
   const grandTotal = discountedSubtotal + deliveryFee + gstAmount;
 
   const handleSendWhatsApp = async (appType: 'personal' | 'business' = 'personal') => {
-    if (!customerPhone || customerPhone.length !== 10) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      if (!customerPhone || customerPhone.length !== 10) {
       alert(
         "Please enter a valid 10-digit mobile contact number to send the bill.",
       );
@@ -698,9 +702,21 @@ export default function POSBilling() {
       }
       newOrderId = `INV-${currentYear}-${randStr}`;
     }
-    const itemsToSave = items.filter((i) => i.name && i.price >= 0);
+    const hasInvalidItem = items.some(
+      (i) =>
+        (i.name && (!i.price || i.price <= 0)) ||
+        (!i.name && i.price > 0)
+    );
+
+    if (hasInvalidItem) {
+      alert("All added items must have both a product name and a valid price greater than 0.");
+      return;
+    }
+
+    const itemsToSave = items.filter((i) => i.name && i.price > 0);
+    
     if (itemsToSave.length === 0) {
-      alert("Please add at least one item to the order before proceeding.");
+      alert("Please add at least one valid item to the order before proceeding.");
       return;
     }
     if (applyGST && gstAmount > 0) {
@@ -755,11 +771,17 @@ export default function POSBilling() {
     let message = `${shopEmoji} *UPDATE MENS WEAR* ${shopEmoji}\n\n`;
     message += `${checkEmoji} Thank you for shopping with us!\n\n`;
     
+    message += `*Subtotal:* ₹${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    
     if (calculatedDiscount > 0) {
-      message += `${tagEmoji} Discount Applied: ₹${calculatedDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+      message += `*Discount Applied:* -₹${calculatedDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
     }
     
-    message += `${moneyEmoji} Total Amount: ₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
+    if (applyGST && gstAmount > 0) {
+      message += `*GST (${gstPercentage}%):* ₹${gstAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    }
+    
+    message += `\n${moneyEmoji} *Total Amount:* ₹${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
     message += `${receiptEmoji} View and download your detailed digital receipt here:\n${invoiceUrl}`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -798,6 +820,9 @@ export default function POSBilling() {
     setDiscountValue(0);
     setDeliveryFee(0);
     setCashReceived(0);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Real-time analytics derived from orders with period filtering
@@ -1307,11 +1332,18 @@ export default function POSBilling() {
     let message = `${shopEmoji} *UPDATE MENS WEAR* ${shopEmoji}\n\n`;
     message += `${checkEmoji} Here are your invoice details!\n\n`;
     
+    message += `*Subtotal:* ₹${order.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    
     if (order.discount > 0) {
-      message += `${tagEmoji} Discount Applied: ₹${order.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+      message += `*Discount Applied:* -₹${order.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
     }
     
-    message += `${moneyEmoji} Total Amount: ₹${order.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
+    const gstItem = order.items.find(i => i.name && i.name.startsWith("GST ("));
+    if (gstItem) {
+      message += `*${gstItem.name}:* ₹${gstItem.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    }
+
+    message += `\n${moneyEmoji} *Total Amount:* ₹${order.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
     message += `${receiptEmoji} View and download your detailed digital receipt here:\n${invoiceUrl}`;
 
     const encodedMessage = encodeURIComponent(message);

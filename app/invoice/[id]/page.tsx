@@ -180,7 +180,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E8DEC8]/40">
-              {order.order_items.map((item: any, index: number) => (
+              {order.order_items.filter((item: any) => !item.snapshot_name.startsWith('GST (')).map((item: any, index: number) => (
                 <tr key={index} className="group">
                   <td className="py-6 pr-4 print:py-3">
                     <p className="text-sm font-bold text-[#192836]">{item.snapshot_name}</p>
@@ -220,6 +220,13 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Delivery Fee</span>
                   <span className="font-bold text-[#32231A]">₹{order.delivery_fee.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                </div>
+              )}
+
+              {order.order_items.find((item: any) => item.snapshot_name.startsWith('GST (')) && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-[#8A7B72] font-bold uppercase tracking-wider">{order.order_items.find((item: any) => item.snapshot_name.startsWith('GST (')).snapshot_name}</span>
+                  <span className="font-bold text-[#32231A]">₹{order.order_items.find((item: any) => item.snapshot_name.startsWith('GST (')).snapshot_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                 </div>
               )}
 
