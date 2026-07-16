@@ -2344,22 +2344,22 @@ export default function POSBilling() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-[#FFFFFF] border-b border-black/10">
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[14%] text-left">
                               Order ID
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%] text-center">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[14%] text-left">
                               Customer Name
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[14%] text-left">
                               Mobile Number
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[10%]">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[10%] text-left">
                               Source
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[14%] text-right">
                               Total Due
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest text-right w-[30%]">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[34%] text-right">
                               Status
                             </th>
                           </tr>
@@ -2370,23 +2370,23 @@ export default function POSBilling() {
                               key={order.id}
                               className="border-b border-transparent hover:bg-[#FFFFFF] transition-colors"
                             >
-                              <td className="p-4 text-xs font-semibold text-[#000000]">
+                              <td className="p-4 text-xs font-semibold text-[#000000] text-left whitespace-nowrap">
                                 {order.id}
                               </td>
-                              <td className="p-4 text-sm font-black text-[#000000] text-center">
+                              <td className="p-4 text-sm font-black text-[#000000] text-left truncate max-w-[150px]" title={order.customerName}>
                                 {order.customerName}
                               </td>
-                              <td className="p-4 text-xs font-mono font-bold text-[#000000]">
+                              <td className="p-4 text-xs font-mono font-bold text-[#000000] text-left whitespace-nowrap">
                                 {order.customerPhone || "-"}
                               </td>
-                              <td className="p-4">
+                              <td className="p-4 text-left whitespace-nowrap">
                                 <span
                                   className={`px-2 py-0.5 rounded text-[9px] font-bold tracking-widest border ${order.source === "ONLINE" ? "border-[#00A86B] text-[#00A86B] bg-[#00A86B]/10" : "border-[#E11D48] text-[#E11D48] bg-[#E11D48]/10"}`}
                                 >
                                   {order.source}
                                 </span>
                               </td>
-                              <td className="p-4 text-sm font-black text-[#FF0000]">
+                              <td className="p-4 text-sm font-black text-[#FF0000] text-right whitespace-nowrap">
                                 ₹{order.grandTotal.toLocaleString()}
                               </td>
                               <td className="p-4 text-right">
