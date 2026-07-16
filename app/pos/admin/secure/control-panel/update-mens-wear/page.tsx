@@ -702,23 +702,14 @@ export default function POSBilling() {
       }
       newOrderId = `INV-${currentYear}-${randStr}`;
     }
-    const hasInvalidItem = items.some(
-      (i) =>
-        (i.name && (!i.price || i.price <= 0)) ||
-        (!i.name && i.price > 0)
-    );
-
-    if (hasInvalidItem) {
-      alert("All added items must have both a product name and a valid price greater than 0.");
-      return;
-    }
-
-    const itemsToSave = items.filter((i) => i.name && i.price > 0);
+    // Strict validation: every single row must have a name and a price > 0
+    const hasInvalidItem = items.some(i => !i.name || i.name.trim() === "" || i.price === undefined || i.price <= 0);
     
-    if (itemsToSave.length === 0) {
-      alert("Please add at least one valid item to the order before proceeding.");
+    if (hasInvalidItem || items.length === 0) {
+      alert("Please ensure all items have a valid name and a price greater than 0. Remove any empty rows before proceeding.");
       return;
     }
+    const itemsToSave = items;
     if (applyGST && gstAmount > 0) {
       itemsToSave.push({ id: `gst-${Date.now()}`, name: `GST (${gstPercentage}%)`, desc: "", price: gstAmount, qty: 1 });
     }
@@ -799,7 +790,10 @@ export default function POSBilling() {
       customerName: customerName || "Guest",
       customerPhone,
       source: isOnline ? "ONLINE" : "OFFLINE",
-      items: itemsToSave,
+      items: [
+        ...itemsToSave,
+        ...(applyGST && gstAmount > 0 ? [{ id: Math.random().toString(), name: `GST (${gstPercentage}%)`, desc: "", price: gstAmount, qty: 1 }] : [])
+      ],
       subtotal,
       discount: calculatedDiscount,
       discountType: discountType === "percent" ? "PERCENT" : "FIXED",
@@ -845,7 +839,9 @@ export default function POSBilling() {
     }
     if (analyticsPeriod === "week") {
       const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday start of week
+      const dayOfWeek = startOfWeek.getDay();
+      const distToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      startOfWeek.setDate(startOfWeek.getDate() + distToMonday); // Monday start of week
       startOfWeek.setHours(0, 0, 0, 0);
       return orderDate >= startOfWeek;
     }
@@ -1322,33 +1318,31 @@ export default function POSBilling() {
     }
     const domain = window.location.origin;
     const invoiceUrl = `${domain}/invoice/${order.id}`;
-
     const shopEmoji = String.fromCodePoint(0x2728);
     const checkEmoji = String.fromCodePoint(0x2705);
-    const tagEmoji = String.fromCodePoint(0x1F516);
     const moneyEmoji = String.fromCodePoint(0x1F4B0);
     const receiptEmoji = String.fromCodePoint(0x1F4E6);
-
     let message = `${shopEmoji} *UPDATE MENS WEAR* ${shopEmoji}\n\n`;
     message += `${checkEmoji} Here are your invoice details!\n\n`;
     
     message += `*Subtotal:* ₹${order.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
-    
     if (order.discount > 0) {
       message += `*Discount Applied:* -₹${order.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
     }
     
-    const gstItem = order.items.find(i => i.name && i.name.startsWith("GST ("));
-    if (gstItem) {
-      message += `*${gstItem.name}:* ₹${gstItem.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    // Bulletproof mathematical GST calculation
+    const gstItem = order.items.find(i => i.name && i.name.startsWith("GST"));
+    const calculatedGst = order.grandTotal - (order.subtotal - order.discount + order.deliveryFee);
+    
+    if (calculatedGst > 0.1) {
+      const gstLabel = gstItem ? gstItem.name : "GST";
+      message += `*${gstLabel}:* ₹${calculatedGst.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
     }
-
+    
     message += `\n${moneyEmoji} *Total Amount:* ₹${order.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
     message += `${receiptEmoji} View and download your detailed digital receipt here:\n${invoiceUrl}`;
-
     const encodedMessage = encodeURIComponent(message);
     let whatsappUrl = `https://api.whatsapp.com/send/?phone=91${order.customerPhone.split('_')[0]}&text=${encodedMessage}`;
-
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if (isMobile) {
       window.location.href = whatsappUrl;
@@ -2350,22 +2344,22 @@ export default function POSBilling() {
                       <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-[#FFFFFF] border-b border-black/10">
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
                               Order ID
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%] text-center">
                               Customer Name
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
                               Mobile Number
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[10%]">
                               Source
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest w-[15%]">
                               Total Due
                             </th>
-                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest text-right">
+                            <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest text-right w-[30%]">
                               Status
                             </th>
                           </tr>
@@ -2379,7 +2373,7 @@ export default function POSBilling() {
                               <td className="p-4 text-xs font-semibold text-[#000000]">
                                 {order.id}
                               </td>
-                              <td className="p-4 text-xs font-bold text-[#000000]">
+                              <td className="p-4 text-sm font-black text-[#000000] text-center">
                                 {order.customerName}
                               </td>
                               <td className="p-4 text-xs font-mono font-bold text-[#000000]">
@@ -2708,7 +2702,7 @@ export default function POSBilling() {
                                   </td>
                                   <td className="p-3 text-xs font-semibold text-[#000000] text-right">
                                     {order.items.reduce(
-                                      (sum, i) => sum + i.qty,
+                                      (sum, i) => sum + ((i.name && !i.name.startsWith("GST (")) ? i.qty : 0),
                                       0,
                                     )}{" "}
                                     pcs
