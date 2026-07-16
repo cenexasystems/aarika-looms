@@ -42,7 +42,7 @@ export default function Home() {
               <div>
                 <p className="text-[10px] font-bold text-[#8A7B72]/85 uppercase tracking-wider mb-0.5">Address</p>
                 <p className="text-[#32231A] leading-relaxed">
-                  131, Eldams Rd, Teynampet, Chennai, Tamil Nadu 600018
+                  periyar silai to bustand 100 ft Road, Karaikudi
                 </p>
               </div>
             </div>

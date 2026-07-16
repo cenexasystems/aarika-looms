@@ -130,7 +130,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <span className="inline-block text-[#8C1D2F] mr-1.5 align-middle -mt-0.5">
                 <MapPin className="w-3.5 h-3.5" />
               </span>
-              <span>131, Eldams Rd, Subbarayan Nagar, Teynampet, Chennai, Tamil Nadu 600018</span>
+              <span>periyar silai to bustand 100 ft Road, Karaikudi</span>
             </div>
             <div className="flex items-center gap-1.5 justify-center">
               <Phone className="w-3.5 h-3.5 text-[#8C1D2F] shrink-0" />
@@ -169,7 +169,8 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
         {/* Items Table */}
         <div className="p-8 sm:p-12 print:py-4 print:px-6">
-          <table className="w-full text-left border-collapse">
+          <div className="w-full overflow-x-auto scrollbar-thin pb-2">
+            <table className="w-full text-left border-collapse min-w-[400px]">
             <thead>
               <tr className="border-b-2 border-[#E8DEC8]">
                 <th className="py-4 text-[11px] font-bold text-[#8A7B72] uppercase tracking-wider">Item Description</th>
@@ -191,6 +192,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               ))}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Totals Section */}
@@ -221,9 +223,9 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 </div>
               )}
 
-              <div className="border-t border-[#E8DEC8] pt-4 mt-2 flex justify-between items-center">
-                <span className="text-sm font-black text-[#8C1D2F] uppercase tracking-widest">Total Amount</span>
-                <span className="text-3xl font-black text-[#192836]">₹{order.grand_total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+              <div className="border-t border-[#E8DEC8] pt-4 mt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+                <span className="text-sm font-black text-[#8C1D2F] uppercase tracking-widest shrink-0">Total Amount</span>
+                <span className="text-[28px] sm:text-3xl font-black text-[#192836] self-end sm:self-auto leading-none mt-1 sm:mt-0">₹{order.grand_total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
             </div>
         </div>

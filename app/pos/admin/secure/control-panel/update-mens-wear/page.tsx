@@ -29,6 +29,7 @@ import {
   LogOut,
   Eye,
   EyeOff,
+  Printer,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { verifyPasscode } from "@/app/pos/actions";
@@ -291,6 +292,8 @@ export default function POSBilling() {
   );
   const [deliveryFee, setDeliveryFee] = useState<number>(0);
   const [cashReceived, setCashReceived] = useState<number>(0);
+  const [applyGST, setApplyGST] = useState<boolean>(false);
+  const [gstPercentage, setGstPercentage] = useState<number>(5);
 
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -436,9 +439,11 @@ export default function POSBilling() {
   const [selectedOrder, setSelectedOrder] = useState<CompletedOrder | null>(
     null,
   );
+  const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
   const [newCatPrice, setNewCatPrice] = useState<number | "">("");
+  const [editCatalogItemId, setEditCatalogItemId] = useState<string | null>(null);
 
   const [activeCatalogRowId, setActiveCatalogRowId] = useState<string | null>(
     null,
@@ -539,8 +544,40 @@ export default function POSBilling() {
     ]);
   };
 
-  const addToCatalog = async () => {
+  const saveCatalogItem = async () => {
     if (!newCatName.trim()) return;
+
+    if (editCatalogItemId) {
+      const { error } = await supabase
+        .from("products")
+        .update({
+          name: newCatName,
+          description: newCatDesc,
+          default_price: newCatPrice || 0,
+        })
+        .eq("id", editCatalogItemId);
+
+      if (error) {
+        console.error("Error updating catalog item", error);
+        alert("Failed to update item.");
+        return;
+      }
+
+      setCatalog((prev) =>
+        prev.map((c) =>
+          c.id === editCatalogItemId
+            ? { ...c, name: newCatName, desc: newCatDesc, price: newCatPrice || 0 }
+            : c
+        )
+      );
+      
+      setNewCatName("");
+      setNewCatDesc("");
+      setNewCatPrice("");
+      setEditCatalogItemId(null);
+      setShowCatalogModal(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from("products")
@@ -597,12 +634,22 @@ export default function POSBilling() {
     setCatalog((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const editCatalogItem = (catItem: CatalogItem) => {
+    setEditCatalogItemId(catItem.id);
+    setNewCatName(catItem.name);
+    setNewCatDesc(catItem.desc || "");
+    setNewCatPrice(catItem.price !== undefined ? catItem.price : "");
+    setShowCatalogModal(true);
+  };
+
   const subtotal = items.reduce((acc, item) => acc + item.price * item.qty, 0);
   const calculatedDiscount =
     discountType === "percent"
       ? subtotal * (discountValue / 100)
       : discountValue;
-  const grandTotal = Math.max(0, subtotal - calculatedDiscount) + deliveryFee;
+  const discountedSubtotal = Math.max(0, subtotal - calculatedDiscount);
+  const gstAmount = applyGST ? discountedSubtotal * (gstPercentage / 100) : 0;
+  const grandTotal = discountedSubtotal + deliveryFee + gstAmount;
 
   const handleSendWhatsApp = async (appType: 'personal' | 'business' = 'personal') => {
     if (!customerPhone || customerPhone.length !== 10) {
@@ -651,7 +698,14 @@ export default function POSBilling() {
       }
       newOrderId = `INV-${currentYear}-${randStr}`;
     }
-    const itemsToSave = items.filter((i) => i.name && i.price > 0);
+    const itemsToSave = items.filter((i) => i.name && i.price >= 0);
+    if (itemsToSave.length === 0) {
+      alert("Please add at least one item to the order before proceeding.");
+      return;
+    }
+    if (applyGST && gstAmount > 0) {
+      itemsToSave.push({ id: `gst-${Date.now()}`, name: `GST (${gstPercentage}%)`, desc: "", price: gstAmount, qty: 1 });
+    }
 
     // Format unique phone: phone_name_timestamp to bypass unique constraint
     const dbPhone = `${customerPhone}_${customerName || "Guest"}_${Date.now()}`;
@@ -829,7 +883,7 @@ export default function POSBilling() {
   > = {};
   analyticsFilteredOrders.forEach((order) => {
     order.items.forEach((item) => {
-      if (!item.name) return;
+      if (!item.name || item.name.startsWith("GST (")) return;
       if (!itemSales[item.name])
         itemSales[item.name] = { name: item.name, revenue: 0, qty: 0 };
       itemSales[item.name].revenue += item.price * item.qty;
@@ -956,7 +1010,10 @@ export default function POSBilling() {
     .reduce((acc, o) => acc + o.grandTotal, 0);
 
   const todayItemsSold = todayOrders.reduce(
-    (acc, o) => acc + o.items.reduce((sum, item) => sum + item.qty, 0),
+    (acc, o) => acc + o.items.reduce((sum, item) => {
+      const isGST = item.name && item.name.startsWith("GST (");
+      return sum + (isGST ? 0 : item.qty);
+    }, 0),
     0,
   );
 
@@ -967,7 +1024,7 @@ export default function POSBilling() {
   > = {};
   todayOrders.forEach((order) => {
     order.items.forEach((item) => {
-      if (!item.name) return;
+      if (!item.name || item.name.startsWith("GST (")) return;
       if (!todayItemSales[item.name])
         todayItemSales[item.name] = { name: item.name, revenue: 0, qty: 0 };
       todayItemSales[item.name].revenue += item.price * item.qty;
@@ -988,13 +1045,17 @@ export default function POSBilling() {
     .reduce((acc, o) => acc + o.grandTotal, 0);
 
   const totalItemsSold = analyticsFilteredOrders.reduce(
-    (acc, o) => acc + o.items.reduce((sum, item) => sum + item.qty, 0),
+    (acc, o) => acc + o.items.reduce((sum, item) => {
+      const isGST = item.name && item.name.startsWith("GST (");
+      return sum + (isGST ? 0 : item.qty);
+    }, 0),
     0,
   );
 
   const categorySales: Record<string, number> = {};
   analyticsFilteredOrders.forEach((order) => {
     order.items.forEach((item) => {
+      if (!item.name || item.name.startsWith("GST (")) return;
       const cat = item.desc || "Uncategorized";
       if (!categorySales[cat]) categorySales[cat] = 0;
       categorySales[cat] += item.price * item.qty;
@@ -1229,6 +1290,41 @@ export default function POSBilling() {
     document.body.removeChild(link);
   };
 
+  const resendWhatsApp = (order: CompletedOrder) => {
+    if (!order.customerPhone || order.customerPhone.length < 10) {
+      alert("Invalid customer phone number for this order.");
+      return;
+    }
+    const domain = window.location.origin;
+    const invoiceUrl = `${domain}/invoice/${order.id}`;
+
+    const shopEmoji = String.fromCodePoint(0x2728);
+    const checkEmoji = String.fromCodePoint(0x2705);
+    const tagEmoji = String.fromCodePoint(0x1F516);
+    const moneyEmoji = String.fromCodePoint(0x1F4B0);
+    const receiptEmoji = String.fromCodePoint(0x1F4E6);
+
+    let message = `${shopEmoji} *UPDATE MENS WEAR* ${shopEmoji}\n\n`;
+    message += `${checkEmoji} Here are your invoice details!\n\n`;
+    
+    if (order.discount > 0) {
+      message += `${tagEmoji} Discount Applied: ₹${order.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n`;
+    }
+    
+    message += `${moneyEmoji} Total Amount: ₹${order.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}\n\n`;
+    message += `${receiptEmoji} View and download your detailed digital receipt here:\n${invoiceUrl}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    let whatsappUrl = `https://api.whatsapp.com/send/?phone=91${order.customerPhone.split('_')[0]}&text=${encodedMessage}`;
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      window.location.href = whatsappUrl;
+    } else {
+      window.open(whatsappUrl, "_blank");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#000000] flex flex-row font-sans overflow-hidden">
       {/* Catalog Modal */}
@@ -1240,11 +1336,14 @@ export default function POSBilling() {
                 <div className="w-10 h-10 bg-[#FF0000]/10 rounded-lg flex items-center justify-center">
                   <PackagePlus className="w-5 h-5 text-[#FF0000]" />
                 </div>
-                Add New Item
+                {editCatalogItemId ? "Edit Item" : "Add New Item"}
               </h3>
               <button
-                onClick={() => setShowCatalogModal(false)}
-                className="w-8 h-8 flex items-center justify-center text-[#000000] hover:bg-[#000000] rounded-md transition-colors"
+                onClick={() => {
+                  setShowCatalogModal(false);
+                  setEditCatalogItemId(null);
+                }}
+                className="w-8 h-8 flex items-center justify-center text-[#000000] hover:bg-black/10 rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1293,7 +1392,7 @@ export default function POSBilling() {
                 />
               </div>
               <button
-                onClick={addToCatalog}
+                onClick={saveCatalogItem}
                 className="w-full py-4 mt-4 bg-[#990000] hover:bg-[#CC0000] text-[#FFFFFF] rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-colors"
               >
                 Save to Catalog
@@ -1658,18 +1757,32 @@ export default function POSBilling() {
                                               </span>
                                             )}
                                           </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              if (window.confirm("Are you sure you want to delete this item from the catalog?")) {
-                                                deleteFromCatalog(catItem.id);
-                                              }
-                                            }}
-                                            className="px-4 py-2.5 text-[#000000] hover:text-[#FF0000] transition-colors cursor-pointer"
-                                            title="Delete item"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                          </button>
+                                          <div className="flex items-center pr-2">
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                editCatalogItem(catItem);
+                                              }}
+                                              className="px-2 py-2.5 text-[#000000] hover:text-[#3B82F6] transition-colors cursor-pointer"
+                                              title="Edit item"
+                                            >
+                                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                              </svg>
+                                            </button>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm("Are you sure you want to delete this item from the catalog?")) {
+                                                  deleteFromCatalog(catItem.id);
+                                                }
+                                              }}
+                                              className="px-2 py-2.5 text-[#000000] hover:text-[#FF0000] transition-colors cursor-pointer"
+                                              title="Delete item"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </button>
+                                          </div>
                                         </div>
                                       ))
                                   ) : (
@@ -1695,16 +1808,16 @@ export default function POSBilling() {
                             )}
                           </div>
 
-                          {/* Price, Qty, and Trash (Flex row on mobile, separate grid cells on desktop) */}
-                          <div className="col-span-5 flex items-center justify-between sm:grid sm:grid-cols-5 gap-3 sm:gap-4 w-full">
+                          {/* Price, Qty, and Trash */}
+                          <div className="col-span-5 grid grid-cols-[minmax(0,1fr)_auto_auto] sm:grid-cols-5 gap-2 sm:gap-4 w-full items-center">
                             {/* Price Input */}
-                            <div className="flex-1 sm:col-span-2 flex items-center gap-2 sm:block">
+                            <div className="sm:col-span-2 flex items-center gap-1.5 sm:gap-2 sm:block min-w-0 w-full">
                               <span className="text-[10px] font-bold text-[#000000] uppercase sm:hidden shrink-0">
                                 Price:
                               </span>
                               <input
                                 type="number"
-                                className="w-full min-w-[70px] sm:min-w-0 text-center bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-3 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors"
+                                className="w-full min-w-0 text-center bg-white border border-black/10 focus:border-[#FF0000] rounded-lg px-2 sm:px-3 py-2 text-xs font-semibold text-[#000000] focus:outline-none transition-colors"
                                 value={item.price || ""}
                                 onChange={(e) =>
                                   updateItem(
@@ -1719,7 +1832,7 @@ export default function POSBilling() {
                             </div>
 
                             {/* Quantity Counter */}
-                            <div className="flex-1 sm:col-span-2 flex items-center justify-end gap-2 sm:block">
+                            <div className="sm:col-span-2 flex items-center justify-end gap-1.5 sm:gap-2 sm:block shrink-0">
                               <span className="text-[10px] font-bold text-[#000000] uppercase sm:hidden shrink-0">
                                 Qty:
                               </span>
@@ -1911,6 +2024,43 @@ export default function POSBilling() {
                           }
                           placeholder="0"
                         />
+                      </div>
+                    </div>
+
+                    {/* GST Section (Below Delivery, Above Grand Total) */}
+                    <div className="pt-2">
+                      <div className="flex flex-wrap justify-between items-center gap-2">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <div className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${applyGST ? 'bg-[#FF0000]' : 'bg-gray-300'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${applyGST ? 'translate-x-4' : 'translate-x-1'}`} />
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={applyGST}
+                            onChange={(e) => setApplyGST(e.target.checked)}
+                          />
+                          <span className="text-xs font-bold text-[#000000] uppercase tracking-wider">
+                            Apply GST
+                          </span>
+                        </label>
+                        {applyGST && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                className="w-14 text-right bg-white border border-black/10 rounded-lg px-2 py-1 text-xs font-bold text-[#000000] focus:outline-none focus:border-[#FF0000] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                value={gstPercentage || ""}
+                                onChange={(e) => setGstPercentage(parseFloat(e.target.value) || 0)}
+                                placeholder="%"
+                              />
+                              <span className="text-xs font-bold text-[#000000]">%</span>
+                            </div>
+                            <span className="text-xs font-bold text-[#FF0000] w-16 text-right">
+                              ₹{gstAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -2214,15 +2364,27 @@ export default function POSBilling() {
                                 ₹{order.grandTotal.toLocaleString()}
                               </td>
                               <td className="p-4 text-right">
-                                <div className="flex items-center justify-end gap-3">
-                                  <span className="px-3 py-1 rounded bg-[#10B981]/10 text-[#10B981] text-[10px] font-bold uppercase tracking-wider">
+                                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2 sm:gap-3">
+                                  <span className="px-3 py-1 rounded bg-[#10B981]/10 text-[#10B981] text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">
                                     {order.status}
                                   </span>
                                   <button
-                                    onClick={() => setSelectedOrder(order)}
-                                    className="text-[10px] font-bold text-[#000000] hover:text-[#FF0000] uppercase tracking-wider underline underline-offset-2"
+                                    onClick={() => resendWhatsApp(order)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer"
                                   >
-                                    Details
+                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.012c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
+                                    </svg>
+                                    WhatsApp
+                                  </button>
+                                  <button
+                                    onClick={() => setActiveInvoiceId(order.id)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF0000] hover:bg-[#CC0000] text-white rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    Invoice
                                   </button>
                                 </div>
                               </td>
@@ -3469,6 +3631,33 @@ export default function POSBilling() {
           </div>
         </footer>
       </main>
+
+      {/* Invoice Modal */}
+      {activeInvoiceId && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#FAFAEB] rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] sm:h-[85vh] flex flex-col overflow-hidden transform scale-100 animate-in zoom-in-95 duration-200">
+            <div className="px-4 py-3 flex justify-between items-center bg-white border-b border-black/10 shrink-0">
+              <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-2 text-[#000000]">
+                <Printer className="w-4 h-4 text-[#FF0000]" />
+                Invoice #{activeInvoiceId}
+              </h3>
+              <button
+                onClick={() => setActiveInvoiceId(null)}
+                className="w-8 h-8 flex items-center justify-center bg-black hover:bg-black/80 text-white rounded-md transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 w-full bg-gray-50 overflow-hidden relative">
+              <iframe 
+                src={`/invoice/${activeInvoiceId}`} 
+                className="w-full h-full border-none absolute inset-0"
+                title={`Invoice ${activeInvoiceId}`}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
