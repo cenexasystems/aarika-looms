@@ -439,6 +439,7 @@ export default function POSBilling() {
   const [selectedOrder, setSelectedOrder] = useState<CompletedOrder | null>(
     null,
   );
+  const [viewingOrder, setViewingOrder] = useState<CompletedOrder | null>(null);
   const [activeInvoiceId, setActiveInvoiceId] = useState<string | null>(null);
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
@@ -1351,6 +1352,24 @@ export default function POSBilling() {
     }
   };
 
+  const deleteOrder = async (order: CompletedOrder) => {
+    if (!window.confirm(`Are you sure you want to permanently delete order ${order.id}? This cannot be undone.`)) return;
+    try {
+      await supabase.from("order_items").delete().eq("order_id", order.id);
+      const { error } = await supabase.from("orders").delete().eq("id", order.id);
+      if (error) {
+        console.error("Error deleting order:", error);
+        alert("Failed to delete the order. Please try again.");
+        return;
+      }
+      setOrders((prev) => prev.filter((o) => o.id !== order.id));
+      if (viewingOrder?.id === order.id) setViewingOrder(null);
+    } catch (err) {
+      console.error("Unexpected error deleting order:", err);
+      alert("An unexpected error occurred.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#000000] flex flex-row font-sans overflow-hidden">
       {/* Catalog Modal */}
@@ -2164,6 +2183,137 @@ export default function POSBilling() {
           </div>
         )}
 
+        {/* Order Details View Modal */}
+        {viewingOrder && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setViewingOrder(null)}>
+            <div
+              className="bg-white border border-black/10 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.3)] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-black/10 shrink-0">
+                <div>
+                  <h3 className="text-base font-black text-[#000000] tracking-tight">Order Details</h3>
+                  <p className="text-[10px] font-bold text-[#000000]/50 uppercase tracking-wider mt-0.5">{viewingOrder.id}</p>
+                </div>
+                <button
+                  onClick={() => setViewingOrder(null)}
+                  className="w-8 h-8 flex items-center justify-center text-[#000000]/40 hover:text-[#FF0000] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+                {/* Customer + Meta */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-[#F8F8F8] rounded-xl p-3 border border-black/5">
+                    <p className="text-[9px] font-bold text-[#000000]/40 uppercase tracking-wider mb-1">Customer</p>
+                    <p className="text-sm font-black text-[#000000]">{viewingOrder.customerName}</p>
+                    <p className="text-xs font-bold text-[#000000]/60 mt-0.5">{viewingOrder.customerPhone || "—"}</p>
+                  </div>
+                  <div className="bg-[#F8F8F8] rounded-xl p-3 border border-black/5">
+                    <p className="text-[9px] font-bold text-[#000000]/40 uppercase tracking-wider mb-1">Date & Source</p>
+                    <p className="text-xs font-bold text-[#000000]">{new Date(viewingOrder.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-[10px] font-bold text-[#000000]/50 mt-0.5">{new Date(viewingOrder.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest border ${viewingOrder.source === 'ONLINE' ? 'border-[#00A86B] text-[#00A86B] bg-[#00A86B]/10' : 'border-[#E11D48] text-[#E11D48] bg-[#E11D48]/10'}`}>
+                      {viewingOrder.source}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div>
+                  <p className="text-[9px] font-bold text-[#000000]/40 uppercase tracking-wider mb-2">Items Purchased</p>
+                  <div className="border border-black/10 rounded-xl overflow-hidden">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-[#F8F8F8] border-b border-black/10">
+                          <th className="px-4 py-2.5 text-[9px] font-bold text-[#000000]/50 uppercase tracking-wider">Item</th>
+                          <th className="px-4 py-2.5 text-[9px] font-bold text-[#000000]/50 uppercase tracking-wider text-center">Qty</th>
+                          <th className="px-4 py-2.5 text-[9px] font-bold text-[#000000]/50 uppercase tracking-wider text-right">Price</th>
+                          <th className="px-4 py-2.5 text-[9px] font-bold text-[#000000]/50 uppercase tracking-wider text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5">
+                        {viewingOrder.items.filter(i => !i.name?.startsWith('GST (')).map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-2.5 text-xs font-semibold text-[#000000]">{item.name}</td>
+                            <td className="px-4 py-2.5 text-xs font-bold text-[#000000] text-center">{item.qty}</td>
+                            <td className="px-4 py-2.5 text-xs font-bold text-[#000000] text-right">₹{item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td className="px-4 py-2.5 text-xs font-black text-[#000000] text-right">₹{(item.price * item.qty).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Totals Breakdown */}
+                <div className="bg-[#F8F8F8] rounded-xl p-4 border border-black/5 space-y-2">
+                  {(viewingOrder.discount > 0 || viewingOrder.deliveryFee > 0) && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#000000]/60 font-semibold">Subtotal</span>
+                      <span className="font-bold text-[#000000]">₹{viewingOrder.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {viewingOrder.discount > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#000000]/60 font-semibold">
+                        Discount {viewingOrder.discountType === 'PERCENT' ? `(${viewingOrder.discountValue}%)` : ''}
+                      </span>
+                      <span className="font-bold text-[#E11D48]">-₹{viewingOrder.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {viewingOrder.deliveryFee > 0 && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#000000]/60 font-semibold">Delivery Fee</span>
+                      <span className="font-bold text-[#000000]">₹{viewingOrder.deliveryFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {viewingOrder.items.find(i => i.name?.startsWith('GST (')) && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#000000]/60 font-semibold">{viewingOrder.items.find(i => i.name?.startsWith('GST ('))!.name}</span>
+                      <span className="font-bold text-[#000000]">₹{viewingOrder.items.find(i => i.name?.startsWith('GST ('))!.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-black/10">
+                    <span className="text-xs font-black text-[#000000] uppercase tracking-wider">Grand Total</span>
+                    <span className="text-lg font-black text-[#FF0000]">₹{viewingOrder.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  {viewingOrder.cashReceived > 0 && (
+                    <div className="flex justify-between text-xs pt-1">
+                      <span className="text-[#000000]/60 font-semibold">Cash Received</span>
+                      <span className="font-bold text-[#000000]">₹{viewingOrder.cashReceived.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-4 border-t border-black/10 shrink-0 flex gap-3">
+                <button
+                  onClick={() => { resendWhatsApp(viewingOrder); }}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.012c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" /></svg>
+                  Resend WhatsApp
+                </button>
+                <a
+                  href={`/invoice/${viewingOrder.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  Open Invoice
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeTab === "orders" && (
           <div className="flex-1 flex flex-col max-w-[1400px] mx-auto w-full pb-8 pr-2 animate-in fade-in duration-300">
             {/* Header Panel */}
@@ -2360,7 +2510,7 @@ export default function POSBilling() {
                               Total Due
                             </th>
                             <th className="p-4 text-[10px] font-bold text-[#000000] uppercase tracking-widest whitespace-nowrap w-[34%] text-right">
-                              Status
+                              Actions
                             </th>
                           </tr>
                         </thead>
@@ -2390,10 +2540,8 @@ export default function POSBilling() {
                                 ₹{order.grandTotal.toLocaleString()}
                               </td>
                               <td className="p-4 text-right">
-                                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-2 sm:gap-3">
-                                  <span className="px-3 py-1 rounded bg-[#10B981]/10 text-[#10B981] text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">
-                                    {order.status}
-                                  </span>
+                                <div className="flex items-center justify-end gap-2">
+                                  {/* Pills group */}
                                   <button
                                     onClick={() => resendWhatsApp(order)}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#10B981] hover:bg-[#059669] text-white rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer"
@@ -2403,14 +2551,33 @@ export default function POSBilling() {
                                     </svg>
                                     WhatsApp
                                   </button>
-                                  <button
-                                    onClick={() => setActiveInvoiceId(order.id)}
+                                  <a
+                                    href={`/invoice/${order.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FF0000] hover:bg-[#CC0000] text-white rounded-md text-[9px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer"
                                   >
                                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     Invoice
+                                  </a>
+                                  {/* Divider */}
+                                  <span className="w-px h-5 bg-black/10 mx-1" />
+                                  {/* Icon buttons */}
+                                  <button
+                                    onClick={() => setViewingOrder(order)}
+                                    title="View Details"
+                                    className="p-1.5 text-[#3B82F6] hover:bg-[#3B82F6]/10 rounded-md transition-colors cursor-pointer"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteOrder(order)}
+                                    title="Delete Order"
+                                    className="p-1.5 text-[#EF4444] hover:bg-[#EF4444]/10 rounded-md transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                               </td>
