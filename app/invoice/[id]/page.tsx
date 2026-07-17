@@ -119,8 +119,8 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         
         {/* Header Section */}
         <div className="bg-[#FCFCFA] border-b border-[#E8DEC8] p-8 sm:p-12 print:p-6 flex flex-col items-center text-center">
-          <div className="w-24 h-24 flex items-center justify-center mb-4">
-            <img src="/logo.png" alt="UPDATE MENS WEAR Logo" className="max-w-full max-h-full object-contain" />
+          <div className="w-56 h-auto flex items-center justify-center mb-4">
+            <img src="/logo.png" alt="UPDATE MENS WEAR Logo" className="w-full h-auto object-contain" />
           </div>
           <h1 className="text-3xl font-black text-[#192836] tracking-tight ">UPDATE MENS WEAR</h1>
             <p className="text-xs text-[#8C1D2F] font-bold tracking-wider mt-1 mb-4">INVOICE: {order.id}</p>
