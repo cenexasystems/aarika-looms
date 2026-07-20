@@ -15,17 +15,17 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ffffff;
+  background: var(--color-gold-dark);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #b5a498;
+  background: var(--color-gold);
 }
 
 @layer utilities {
   /* Minimal input removes default focus rings and uses bottom border */
   .minimal-input {
-    @apply w-full bg-transparent border-b border-black/10 py-2 text-[#000000] focus:outline-none focus:border-[#FF0000] transition-colors placeholder:text-[#000000];
+    @apply w-full bg-transparent border-b border-black/10 py-2 text-text-on-light focus:outline-none focus:border-gold transition-colors placeholder:text-text-muted;
   }
 }
 
@@ -89,6 +89,17 @@ input[type="number"] {
 }
 
 @theme {
+  --color-bg-dark: #360C24;
+  --color-bg-dark-light: #4A1230;
+  --color-bg-light: #FFFFFF;
+  --color-bg-light-alt: #FBF7EF;
+  --color-gold: #C58E3B;
+  --color-gold-light: #F5C86B;
+  --color-gold-dark: #955E1B;
+  --color-text-on-dark: #F3E5C3;
+  --color-text-on-light: #2B2B2B;
+  --color-text-muted: #8A7A6A;
+
   --animate-float: float 3s ease-in-out infinite;
   --animate-swing: swing 2.5s ease-in-out infinite;
   --animate-pop: pop 2s ease-in-out infinite;
