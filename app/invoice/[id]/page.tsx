@@ -127,31 +127,39 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
       <div className="w-full max-w-2xl bg-white border border-gold-dark rounded-2xl shadow-xl print:shadow-none print:border-none print:rounded-none overflow-hidden">
         
         {/* Header Section */}
-        <div className="bg-bg-dark border-b border-gold py-5 px-8 sm:py-6 sm:px-12 print:py-5 print:px-6 flex flex-col items-center text-center">
-          <div className="flex items-center justify-center mb-2">
-            <img src="/logo.png" alt="Aarika Looms Logo" className="invoice-logo max-h-[75px] w-auto object-contain" />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-gold">AARIKA LOOMS</h1>
-          <p className="text-xs text-text-on-dark font-bold tracking-wider mt-0.5 mb-2.5">INVOICE: {order.id}</p>
+        <div className="bg-bg-dark border-b border-gold py-5 px-6 sm:px-10 print:py-4 print:px-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           
-          <div className="flex flex-col items-center gap-1 text-sm text-text-on-dark font-semibold">
-            <div className="text-center max-w-md leading-relaxed">
-              <span className="inline-block text-gold mr-1.5 align-middle -mt-0.5">
-                <MapPin className="w-3.5 h-3.5" />
-              </span>
-              <span>Perur Chettipalayam, Coimbatore, Tamil Nadu, India - 641010</span>
+          {/* Left Side: Logo & Brand */}
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 bg-white/5 p-2 rounded-lg">
+              <img src="/logo.png" alt="Aarika Looms Logo" className="invoice-logo h-[50px] sm:h-[60px] w-auto object-contain" />
             </div>
-            <div className="flex items-center gap-1.5 justify-center">
-              <Phone className="w-3.5 h-3.5 text-gold shrink-0" />
+            <div className="flex flex-col text-left">
+              <h1 className="text-xl sm:text-2xl font-black text-gold leading-none tracking-wide">AARIKA LOOMS</h1>
+              {process.env.NEXT_PUBLIC_GST_NUMBER && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="text-gold font-bold text-[9px] uppercase tracking-wider bg-gold/10 px-1.5 py-0.5 rounded">GSTIN</span>
+                  <span className="text-text-on-dark text-xs font-semibold uppercase tracking-wider">{process.env.NEXT_PUBLIC_GST_NUMBER}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Side: Invoice Info & Address */}
+          <div className="flex flex-col text-left sm:text-right gap-1 text-sm text-text-on-dark font-medium sm:items-end w-full sm:w-auto">
+            <p className="text-gold font-black tracking-widest text-sm mb-1 uppercase">
+              Invoice <span className="text-text-on-dark">#{order.id.split('-').pop()}</span>
+            </p>
+            <div className="flex items-start sm:items-center gap-1.5 max-w-[280px] sm:justify-end text-xs leading-relaxed opacity-90">
+              <MapPin className="w-3 h-3 text-gold shrink-0 mt-0.5 sm:mt-0" />
+              <span>Perur Chettipalayam, Coimbatore, TN - 641010</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs opacity-90">
+              <Phone className="w-3 h-3 text-gold shrink-0" />
               <span>+91 {process.env.NEXT_PUBLIC_STORE_PHONE}</span>
             </div>
-            {process.env.NEXT_PUBLIC_GST_NUMBER && (
-              <div className="flex items-center gap-1.5 justify-center mt-0.5">
-                <span className="text-gold font-bold text-[10px]">GSTIN</span>
-                <span className="uppercase">{process.env.NEXT_PUBLIC_GST_NUMBER}</span>
-              </div>
-            )}
           </div>
+
         </div>
 
         {/* Invoice Meta Data */}
