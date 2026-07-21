@@ -145,6 +145,12 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <Phone className="w-3.5 h-3.5 text-gold shrink-0" />
               <span>+91 {process.env.NEXT_PUBLIC_STORE_PHONE}</span>
             </div>
+            {process.env.NEXT_PUBLIC_GST_NUMBER && (
+              <div className="flex items-center gap-1.5 justify-center mt-0.5">
+                <span className="text-gold font-bold text-[10px]">GSTIN</span>
+                <span className="uppercase">{process.env.NEXT_PUBLIC_GST_NUMBER}</span>
+              </div>
+            )}
           </div>
         </div>
 
