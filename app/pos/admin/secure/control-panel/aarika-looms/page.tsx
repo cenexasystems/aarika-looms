@@ -39,6 +39,7 @@ type CatalogItem = {
   name: string;
   desc?: string;
   price?: number;
+  hsn?: string;
 };
 
 type OrderItem = {
@@ -47,6 +48,7 @@ type OrderItem = {
   desc: string;
   price: number;
   qty: number;
+  hsn?: string;
 };
 
 type CompletedOrder = {
@@ -129,6 +131,7 @@ const SearchableItemInput = ({
         const catItem = filteredCatalog[selectedIndex];
         updateItem(item.id, "name", catItem.name);
         updateItem(item.id, "desc", catItem.desc || "");
+        updateItem(item.id, "hsn", catItem.hsn || "");
         if (catItem.price !== undefined) {
           updateItem(item.id, "price", catItem.price);
         }
@@ -204,6 +207,7 @@ const SearchableItemInput = ({
                       e.preventDefault();
                       updateItem(item.id, "name", catItem.name);
                       updateItem(item.id, "desc", catItem.desc || "");
+                      updateItem(item.id, "hsn", catItem.hsn || "");
                       if (catItem.price !== undefined) {
                         updateItem(item.id, "price", catItem.price);
                       }
@@ -219,6 +223,7 @@ const SearchableItemInput = ({
                       e.preventDefault();
                       updateItem(item.id, "name", catItem.name);
                       updateItem(item.id, "desc", catItem.desc || "");
+                      updateItem(item.id, "hsn", catItem.hsn || "");
                       if (catItem.price !== undefined) {
                         updateItem(item.id, "price", catItem.price);
                       }
@@ -233,6 +238,7 @@ const SearchableItemInput = ({
                     onClick={() => {
                       updateItem(item.id, "name", catItem.name);
                       updateItem(item.id, "desc", catItem.desc || "");
+                      updateItem(item.id, "hsn", catItem.hsn || "");
                       if (catItem.price !== undefined) {
                         updateItem(item.id, "price", catItem.price);
                       }
@@ -373,6 +379,7 @@ export default function POSBilling() {
             name: p.name,
             desc: p.description,
             price: p.default_price || undefined,
+            hsn: p.hsn_code || "",
           }))
         ]);
       } else {
@@ -406,6 +413,7 @@ export default function POSBilling() {
                   : "",
               price: i.snapshot_price,
               qty: i.quantity,
+              hsn: i.hsn_code || "",
             })),
             subtotal: o.subtotal,
             discount: o.discount_amount,
@@ -444,6 +452,7 @@ export default function POSBilling() {
   const [newCatName, setNewCatName] = useState("");
   const [newCatDesc, setNewCatDesc] = useState("");
   const [newCatPrice, setNewCatPrice] = useState<number | "">("");
+  const [newCatHsn, setNewCatHsn] = useState("");
   const [editCatalogItemId, setEditCatalogItemId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -549,6 +558,47 @@ export default function POSBilling() {
   const saveCatalogItem = async () => {
     if (!newCatName.trim()) return;
 
+    if (editCatalogItemId && editCatalogItemId.startsWith("default-")) {
+      // Built-in category (not in DB yet): save it as a real product so HSN/price persist
+      const { data, error } = await supabase
+        .from("products")
+        .insert({
+          name: newCatName,
+          description: newCatDesc,
+          default_price: newCatPrice || 0,
+          hsn_code: newCatHsn.trim() || null,
+          category: "Custom",
+        })
+        .select()
+        .single();
+      if (error || !data) {
+        console.error("Error saving catalog item", error);
+        alert("Failed to save item.");
+        return;
+      }
+      const defaultId = editCatalogItemId;
+      setCatalog((prev) =>
+        prev.map((c) =>
+          c.id === defaultId
+            ? {
+                id: data.id,
+                name: data.name,
+                desc: data.description,
+                price: data.default_price || undefined,
+                hsn: data.hsn_code || "",
+              }
+            : c,
+        ),
+      );
+      setNewCatName("");
+      setNewCatDesc("");
+      setNewCatPrice("");
+      setNewCatHsn("");
+      setEditCatalogItemId(null);
+      setShowCatalogModal(false);
+      return;
+    }
+
     if (editCatalogItemId) {
       const { error } = await supabase
         .from("products")
@@ -556,6 +606,7 @@ export default function POSBilling() {
           name: newCatName,
           description: newCatDesc,
           default_price: newCatPrice || 0,
+          hsn_code: newCatHsn.trim() || null,
         })
         .eq("id", editCatalogItemId);
 
@@ -568,7 +619,7 @@ export default function POSBilling() {
       setCatalog((prev) =>
         prev.map((c) =>
           c.id === editCatalogItemId
-            ? { ...c, name: newCatName, desc: newCatDesc, price: newCatPrice || 0 }
+            ? { ...c, name: newCatName, desc: newCatDesc, price: newCatPrice || 0, hsn: newCatHsn.trim() }
             : c
         )
       );
@@ -576,6 +627,7 @@ export default function POSBilling() {
       setNewCatName("");
       setNewCatDesc("");
       setNewCatPrice("");
+      setNewCatHsn("");
       setEditCatalogItemId(null);
       setShowCatalogModal(false);
       return;
@@ -587,6 +639,7 @@ export default function POSBilling() {
         name: newCatName,
         description: newCatDesc,
         default_price: newCatPrice || 0,
+        hsn_code: newCatHsn.trim() || null,
         category: "Custom",
       })
       .select()
@@ -603,11 +656,13 @@ export default function POSBilling() {
         name: data.name,
         desc: data.description,
         price: data.default_price || undefined,
+        hsn: data.hsn_code || "",
       };
       setCatalog([...catalog, newItem]);
 
       if (catalogTargetRowId) {
         updateItem(catalogTargetRowId, "name", data.name);
+        updateItem(catalogTargetRowId, "hsn", data.hsn_code || "");
         if (data.default_price !== undefined) {
           updateItem(catalogTargetRowId, "price", data.default_price || 0);
         }
@@ -617,6 +672,7 @@ export default function POSBilling() {
       setNewCatName("");
       setNewCatDesc("");
       setNewCatPrice("");
+      setNewCatHsn("");
       setShowCatalogModal(false);
     }
   };
@@ -641,6 +697,7 @@ export default function POSBilling() {
     setNewCatName(catItem.name);
     setNewCatDesc(catItem.desc || "");
     setNewCatPrice(catItem.price !== undefined ? catItem.price : "");
+    setNewCatHsn(catItem.hsn || "");
     setShowCatalogModal(true);
   };
 
@@ -664,44 +721,32 @@ export default function POSBilling() {
       return;
     }
 
-    const currentYear = new Date().getFullYear();
+    // Sequential invoice number: INV + 8-digit count (next = existing invoices + 1)
+    const formatInvoiceId = (n: number) => `INV${String(n).padStart(8, "0")}`;
     let newOrderId = "";
-    let isUnique = false;
-    let attempts = 0;
-
     try {
-      while (!isUnique && attempts < 10) {
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        let randStr = "";
-        for (let i = 0; i < 5; i++) {
-          randStr += chars.charAt(Math.floor(Math.random() * chars.length));
+      const { count } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true });
+      let next = Math.max(count ?? 0, orders.length) + 1;
+      for (let attempts = 0; attempts < 50; attempts++, next++) {
+        const tempId = formatInvoiceId(next);
+        if (orders.some((o) => o.id === tempId)) continue;
+        const { data } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("id", tempId)
+          .maybeSingle();
+        if (!data) {
+          newOrderId = tempId;
+          break;
         }
-        const tempId = `INV-${currentYear}-${randStr}`;
-        const existsLocally = orders.some((o) => o.id === tempId);
-        if (!existsLocally) {
-          const { data } = await supabase
-            .from("orders")
-            .select("id")
-            .eq("id", tempId)
-            .maybeSingle();
-          if (!data) {
-            newOrderId = tempId;
-            isUnique = true;
-          }
-        }
-        attempts++;
       }
     } catch (err) {
-      console.error("Error generating secure random invoice number:", err);
+      console.error("Error generating invoice number:", err);
     }
-
     if (!newOrderId) {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let randStr = "";
-      for (let i = 0; i < 5; i++) {
-        randStr += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      newOrderId = `INV-${currentYear}-${randStr}`;
+      newOrderId = formatInvoiceId(orders.length + 1);
     }
     // Strict validation: every single row must have a name and a price > 0
     const hasInvalidItem = items.some(i => !i.name || i.name.trim() === "" || i.price === undefined || i.price <= 0);
@@ -747,6 +792,7 @@ export default function POSBilling() {
           snapshot_name: i.name,
           snapshot_price: i.price,
           quantity: i.qty,
+          hsn_code: i.hsn?.trim() || null,
         })),
       );
     } else {
@@ -1423,6 +1469,20 @@ export default function POSBilling() {
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-text-on-light font-bold uppercase tracking-[0.15em] mb-2">
+                  HSN Code (Optional)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="e.g., 6205"
+                  className="minimal-input text-sm font-semibold"
+                  value={newCatHsn}
+                  onChange={(e) => setNewCatHsn(e.target.value.replace(/\D/g, ""))}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-text-on-light font-bold uppercase tracking-[0.15em] mb-2">
                   Default Price (Optional)
                 </label>
                 <input
@@ -1671,6 +1731,7 @@ export default function POSBilling() {
                           setNewCatName("");
                           setNewCatDesc("");
                           setNewCatPrice("");
+      setNewCatHsn("");
                           setCatalogTargetRowId(null);
                           setShowCatalogModal(true);
                         }}
@@ -1715,6 +1776,17 @@ export default function POSBilling() {
                               value={item.name}
                               onChange={(e) =>
                                 updateItem(item.id, "name", e.target.value)
+                              }
+                            />
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              maxLength={8}
+                              placeholder="HSN"
+                              className="w-full sm:w-20 bg-bg-light border border-black/10 focus:border-gold rounded-lg px-3 py-2 text-xs font-semibold text-text-on-light focus:outline-none transition-colors"
+                              value={item.hsn || ""}
+                              onChange={(e) =>
+                                updateItem(item.id, "hsn", e.target.value.replace(/\D/g, ""))
                               }
                             />
                             <button
@@ -1778,6 +1850,7 @@ export default function POSBilling() {
                                                 "name",
                                                 catItem.name,
                                               );
+                                              updateItem(item.id, "hsn", catItem.hsn || "");
                                               if (catItem.price !== undefined) {
                                                 updateItem(
                                                   item.id,

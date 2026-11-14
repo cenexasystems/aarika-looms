@@ -193,10 +193,11 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         {/* Items Table */}
         <div className="print:py-4 bg-white">
           <div className="w-full overflow-x-auto scrollbar-thin pb-2">
-            <table className="w-full text-left border-collapse min-w-[400px]">
+            <table className="w-full text-left border-collapse min-w-[480px]">
             <thead className="bg-bg-dark">
               <tr>
                 <th className="py-4 px-8 text-[11px] font-bold text-text-on-dark uppercase tracking-wider">Item Description</th>
+                <th className="py-4 px-4 text-[11px] font-bold text-text-on-dark uppercase tracking-wider text-center">HSN</th>
                 <th className="py-4 text-[11px] font-bold text-text-on-dark uppercase tracking-wider text-center">Qty</th>
                 <th className="py-4 text-[11px] font-bold text-text-on-dark uppercase tracking-wider text-right">Price</th>
                 <th className="py-4 pr-8 text-[11px] font-bold text-text-on-dark uppercase tracking-wider text-right">Total</th>
@@ -207,7 +208,9 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 <tr key={index} className={index % 2 === 0 ? "bg-bg-light" : "bg-bg-light-alt"}>
                   <td className="py-6 pl-8 pr-4 print:py-3">
                     <p className="text-sm font-bold text-text-on-light">{item.snapshot_name}</p>
+                    {item.hsn_code && <p className="text-[11px] text-text-muted font-semibold mt-1">HSN: {item.hsn_code}</p>}
                   </td>
+                  <td className="py-6 px-4 print:py-3 text-center text-sm font-bold text-text-on-light">{item.hsn_code || "—"}</td>
                   <td className="py-6 px-4 print:py-3 text-center text-sm font-bold text-text-on-light">{item.quantity}</td>
                   <td className="py-6 pl-4 print:py-3 text-right text-sm font-bold text-text-on-light">₹{item.snapshot_price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
                   <td className="py-6 pl-4 pr-8 print:py-3 text-right text-sm font-black text-text-on-light">₹{(item.snapshot_price * item.quantity).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
